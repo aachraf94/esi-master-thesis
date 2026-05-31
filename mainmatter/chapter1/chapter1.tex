@@ -27,18 +27,23 @@ The field evolved through four broad eras, each widening the analytical scope of
 
 \begin{table}[H]
 \centering
-\caption{Evolution of decision support paradigms.}
-\label{tab:dsis-evolution}
-\begin{tabular}{@{}lll@{}}
-\toprule
-\textbf{Era} & \textbf{Dominant paradigm} & \textbf{Analytical scope} \\
-\midrule
+\renewcommand{\arraystretch}{1.35}
+\rowcolors{2}{white}{tblrowalt}
+\begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{3.2cm}|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
+\hline
+\rowcolor{tblheader}
+\textcolor{white}{\textbf{Era}} &
+\textcolor{white}{\textbf{Dominant paradigm}} &
+\textcolor{white}{\textbf{Analytical scope}} \\
+\hline
 1960s--1980s & Management information systems & Reporting \\
 1990s--2000s & Data warehouse + OLAP & Descriptive \\
 2000s--2010s & Business intelligence platforms & Descriptive + diagnostic \\
 2010s--present & Modern platforms (Lakehouse, cloud DW) & Full spectrum \\
-\bottomrule
-\end{tabular}
+\hline
+\end{tabularx}
+\caption{Evolution of decision support paradigms.}
+\label{tab:dsis-evolution}
 \end{table}
 
 \noindent Table~\ref{tab:dsis-evolution} shows that each era preserved the data warehouse as its core while widening the questions the system could answer. A recent peer-reviewed survey traces the same arc at the storage layer, from the data warehouse through the data lake to the Lakehouse as successive stages of enterprise data management \cite{nambiar2022}. The constant across all four eras is the assumption that requirements can be specified before data ingestion begins. That assumption is what classical warehouse modeling encodes, and it is where the next section opens.
@@ -58,13 +63,16 @@ Data Vault~2.0 is the third major modeling paradigm and the one designed specifi
 
 \begin{table}[H]
 \centering
-\caption{Classical data warehouse modeling paradigms: comparative overview.}
-\label{tab:dw-paradigms}
-\renewcommand{\arraystretch}{1.15}
-\begin{tabularx}{\linewidth}{@{}l>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X@{}}
-\toprule
-\textbf{Property} & \textbf{Inmon CIF} & \textbf{Kimball} & \textbf{Data Vault 2.0 (preview)} \\
-\midrule
+\renewcommand{\arraystretch}{1.35}
+\rowcolors{2}{white}{tblrowalt}
+\begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{3.4cm}|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
+\hline
+\rowcolor{tblheader}
+\textcolor{white}{\textbf{Property}} &
+\textcolor{white}{\textbf{Inmon CIF}} &
+\textcolor{white}{\textbf{Kimball}} &
+\textcolor{white}{\textbf{Data Vault 2.0}} \\
+\hline
 Modeling approach & Top-down, enterprise & Bottom-up, process & Source-aligned, additive \\
 Schema type & Normalized (3NF) & Dimensional (star) & Hub--link--satellite \\
 Integration strategy & Central normalized core & Conformed dimensions & Business keys + links \\
@@ -72,8 +80,10 @@ Time-to-value & Long & Fast & Moderate \\
 Schema flexibility & Low & Low & High \\
 Auditability & Partial & Partial (SCD) & Full, non-destructive \\
 Analytical scope & Descriptive & Descriptive & Descriptive \\
-\bottomrule
+\hline
 \end{tabularx}
+\caption{Classical data warehouse modeling paradigms: comparative overview.}
+\label{tab:dw-paradigms}
 \end{table}
 
 \noindent Table~\ref{tab:dw-paradigms} shows that the three paradigms differ widely on structural properties yet remain identical on analytical scope, all capped at descriptive reporting. The modern architectures surveyed next emerged precisely to relax the structural and analytical limits that this table exposes.
@@ -104,19 +114,24 @@ The architectural requirements rise steeply across the spectrum. Descriptive and
 
 \begin{table}[H]
 \centering
-\caption{Analytical maturity spectrum and corresponding architectural requirements.}
-\label{tab:maturity-spectrum}
-\renewcommand{\arraystretch}{1.2}
-\begin{tabularx}{\linewidth}{@{}l>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X@{}}
-\toprule
-\textbf{Level} & \textbf{Question answered} & \textbf{Key capability required} & \textbf{Typical architecture} \\
-\midrule
+\renewcommand{\arraystretch}{1.35}
+\rowcolors{2}{white}{tblrowalt}
+\begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{2.6cm}|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
+\hline
+\rowcolor{tblheader}
+\textcolor{white}{\textbf{Level}} &
+\textcolor{white}{\textbf{Question answered}} &
+\textcolor{white}{\textbf{Key capability required}} &
+\textcolor{white}{\textbf{Typical architecture}} \\
+\hline
 Descriptive & What happened? & Aggregation, reporting & DW + OLAP \\
 Diagnostic & Why did it happen? & Drill-down, correlation & DW + OLAP \\
 Predictive & What will happen? & Feature pipelines, ML training & ML platform + features \\
 Prescriptive & What should be done? & Feedback loops, model governance, fresh data & Closed-loop pipeline \\
-\bottomrule
+\hline
 \end{tabularx}
+\caption{Analytical maturity spectrum and corresponding architectural requirements.}
+\label{tab:maturity-spectrum}
 \end{table}
 
 \noindent Table~\ref{tab:maturity-spectrum} shows that the jump from diagnostic to predictive is where the architecture, not just the query, must change. The empirical reality is that most organizations remain at the descriptive and diagnostic levels, with industry surveys reporting that the large majority have not reached transformational analytics maturity \cite{gartner2018maturity} \textit{(industry practice; not peer-reviewed)}. A peer-reviewed review of maturity models adds the relevant caution: the consulting models in common use lack theoretical grounding, leaving maturity defined without a rigorous instrument \cite{dataanalyticsmaturity2024}. That absence is part of what the next section repairs.
@@ -162,28 +177,41 @@ Analytical scalability is the capacity of a DSIS to progress along the analytica
 
 \begin{table}[H]
 \centering
+\renewcommand{\arraystretch}{1.35}
+\begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{2.6cm}|>{\raggedright\arraybackslash}p{3.8cm}|>{\raggedright\arraybackslash}X|}
+\hline
+\rowcolor{tblheader}
+\textcolor{white}{\textbf{Axis}} &
+\textcolor{white}{\textbf{Dimension}} &
+\textcolor{white}{\textbf{Definition}} \\
+\hline
+\rowcolor{tblstruct}
+\multirow{5}{2.6cm}{\textbf{Structural}}
+  & Source integration & Cost of absorbing a new heterogeneous source \\
+\rowcolor{tblstruct}
+  & Schema evolution & Cost and isolation of structural changes \\
+\rowcolor{tblstruct}
+  & Volume / throughput & Scaling capacity without redesign \\
+\rowcolor{tblstruct}
+  & Historization & Non-destructive full-history retention \\
+\rowcolor{tblstruct}
+  & Change propagation & Blast-radius isolation of structural change \\
+\hline
+\rowcolor{tblanal}
+\multirow{5}{2.6cm}{\textbf{Analytical}}
+  & Maturity reach & Highest maturity level natively supported \\
+\rowcolor{tblanal}
+  & Native model integration & ML as first-class pipeline citizen \\
+\rowcolor{tblanal}
+  & Data readiness & Freshness, trust, feature availability \\
+\rowcolor{tblanal}
+  & Workload plurality & BI + ML on same governed layer \\
+\rowcolor{tblanal}
+  & Lifecycle support & Retraining, feedback, model governance \\
+\hline
+\end{tabularx}
 \caption{Dual-scalability dimensions: Construct C1.}
 \label{tab:c1-dual-scalability}
-\renewcommand{\arraystretch}{1.25}
-\begin{tabular}{@{}llp{7cm}@{}}
-\toprule
-\textbf{Axis} & \textbf{Dimension} & \textbf{Definition} \\
-\midrule
-\multirow{5}{*}{\textbf{Structural}}
-  & Source integration & Cost of absorbing a new heterogeneous source \\
-  & Schema evolution & Cost and isolation of structural changes \\
-  & Volume / throughput & Scaling capacity without redesign \\
-  & Historization & Non-destructive full-history retention \\
-  & Change propagation & Blast-radius isolation of structural change \\
-\midrule
-\multirow{5}{*}{\textbf{Analytical}}
-  & Maturity reach & Highest maturity level natively supported \\
-  & Native model integration & ML as first-class pipeline citizen \\
-  & Data readiness & Freshness, trust, feature availability \\
-  & Workload plurality & BI + ML on same governed layer \\
-  & Lifecycle support & Retraining, feedback, model governance \\
-\bottomrule
-\end{tabular}
 \end{table}
 
 \noindent Table~\ref{tab:c1-dual-scalability} presents the ten dimensions constituting C1; Chapters~2 and~3 evaluate existing approaches and the proposed framework against these dimensions.
