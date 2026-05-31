@@ -8,17 +8,198 @@ Chapter~1 established that scalability in decision support architectures has two
 
 This chapter moves from survey to critical analysis. It examines the two candidate components of a dual-scalable architecture — Data Vault~2.0 on the modeling side, and the Lakehouse's native analytics stack on the analytical side — not as independent topics but as elements that must eventually compose. The four sections converge toward a single question: do they actually compose, and if so, under what conditions and with what trade-offs?
 
-The argument proceeds as follows:
-\begin{itemize}[noitemsep, topsep=4pt]
-  \item Section~\ref{sec:ch2-dv2} examines Data Vault~2.0's structural mechanics and maps them onto the structural-scalability dimensions defined in C1, acknowledging both documented strengths and documented drawbacks.
-  \item Section~\ref{sec:ch2-analytics} examines the analytical integration patterns available in modern Lakehouse pipelines and maps them onto the analytical-scalability dimensions.
-  \item Section~\ref{sec:ch2-tension} confronts the two components directly, identifying where they align and where they conflict — this is the intellectual core of the chapter.
-  \item Section~\ref{sec:ch2-criteria} synthesizes the analysis into a criteria grid (C2), the evaluation instrument that Chapter~3 will apply.
-\end{itemize}
 
 \section{Data Vault 2.0 and the Claim to Structural Agility}
 \label{sec:ch2-dv2}
-\todo{Write.}
+
+Data Vault~2.0 is the modeling discipline this thesis nominates for the structural axis of a dual-scalable DSIS \cite{linstedt2015}. Its central claim is that structural change can be made additive rather than destructive. This section examines the mechanics behind that claim, scores them against the C1 structural dimensions defined in Section~\ref{sec:ch1-scalability}, and states the drawbacks honestly, because those drawbacks set up the composability tension developed later in the chapter.
+
+\subsection{The Hub--Link--Satellite Decomposition}
+\label{subsec:ch2-hls}
+
+Data Vault~2.0 organizes every entity across three distinct object types, each holding a different kind of information \cite{linstedt2015}.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    scale=0.85, transform shape,
+    >=stealth,
+    font=\small,
+    hub/.style   = {rectangle, rounded corners=3pt, draw=black,
+                    fill=hubfill, text=white, align=center,
+                    minimum width=3.2cm, minimum height=1.2cm, inner sep=3pt},
+    lnk/.style   = {rectangle, draw=black,
+                    fill=lnkfill, text=white, align=center,
+                    minimum width=3.2cm, minimum height=1.2cm, inner sep=3pt},
+    sat/.style   = {rectangle, draw=black,
+                    fill=satfill, text=black, align=center,
+                    minimum width=3.5cm, minimum height=1.1cm, inner sep=3pt},
+    bsat/.style  = {rectangle, draw=black,
+                    fill=bsatfill, text=black, align=center,
+                    minimum width=3.5cm, minimum height=1.0cm, inner sep=3pt},
+    mart/.style  = {rectangle, rounded corners=3pt, draw=black,
+                    fill=martfill, text=black, align=center,
+                    minimum width=3.2cm, minimum height=1.0cm, inner sep=3pt},
+    attr/.style  = {font=\footnotesize}
+  ]
+
+  % ── colour palette ──────────────────────────────────────────────
+  \definecolor{hubfill}{RGB}{70,130,180}
+  \definecolor{lnkfill}{RGB}{76,153,0}
+  \definecolor{satfill}{RGB}{220,220,220}
+  \definecolor{bsatfill}{RGB}{255,204,128}
+  \definecolor{martfill}{RGB}{255,215,0}
+  \definecolor{rawvaultbg}{RGB}{232,244,253}
+  \definecolor{bizvaultbg}{RGB}{255,243,224}
+
+  % ── Hubs (two-cell internal structure) ─────────────────────────
+  \node[hub] (hubcust) {%
+    {\footnotesize\bfseries HUB\_CUSTOMER}\\[1pt]
+    {\scriptsize BK (Hash)}\\
+    {\scriptsize Business Key}};
+  \node[hub, right=6.6cm of hubcust] (huborder) {%
+    {\footnotesize\bfseries HUB\_ORDER}\\[1pt]
+    {\scriptsize BK (Hash)}\\
+    {\scriptsize Business Key}};
+
+  % ── Link between the two hubs ──────────────────────────────────
+  \node[lnk] (lnk) at ($(hubcust)!0.5!(huborder)$) {%
+    {\footnotesize\bfseries LNK\_CUSTOMER\_ORDER}\\[1pt]
+    {\scriptsize FK: HUB\_CUSTOMER hash}\\
+    {\scriptsize FK: HUB\_ORDER hash}};
+
+  % ── Raw satellites ─────────────────────────────────────────────
+  \node[sat, below=1.4cm of hubcust] (satcust) {%
+    {\footnotesize\bfseries SAT\_CUSTOMER\_DETAIL}\\[1pt]
+    {\scriptsize name, address, load\_dts}};
+  \node[sat, below=1.4cm of lnk] (satorder) {%
+    {\footnotesize\bfseries SAT\_ORDER\_STATUS}\\[1pt]
+    {\scriptsize status, amount, load\_dts}};
+
+  % ── Edges inside the Raw Vault ─────────────────────────────────
+  \draw[->] (hubcust) -- (lnk);
+  \draw[->] (huborder) -- (lnk);
+  \draw[->] (hubcust) -- (satcust);
+  \draw[->] (lnk) -- (satorder);
+
+  % ── Business Vault derived satellite ───────────────────────────
+  \node[bsat, below=3.4cm of satcust] (bsat) {%
+    {\footnotesize\bfseries BSAT\_CUSTOMER\_SEGMENT}\\[1pt]
+    {\scriptsize derived segment}};
+  \draw[->, dotted, thick] (hubcust.west) to[out=180, in=90] (bsat.north);
+
+  % ── Consumption mart ───────────────────────────────────────────
+  \node[mart, below=5.0cm of satorder] (dim) {%
+    {\footnotesize\bfseries DIM\_CUSTOMER}\\[1pt]
+    {\scriptsize Consumption Mart}};
+  \draw[->, thick] (hubcust.south) to[out=-90, in=90] (dim.north);
+
+  % ── Background zones ───────────────────────────────────────────
+  \begin{scope}[on background layer]
+    \node[draw=blue!60, dashed, thick, fill=rawvaultbg,
+          rounded corners, inner sep=10pt,
+          fit=(hubcust)(huborder)(lnk)(satcust)(satorder),
+          label={[anchor=north west, font=\small\bfseries]north west:Raw Vault}] (rawzone) {};
+    \node[draw=orange!70, dashed, thick, fill=bizvaultbg,
+          rounded corners, inner sep=8pt,
+          fit=(bsat),
+          label={[anchor=north west, font=\small\bfseries]north west:Business Vault}] (bizzone) {};
+  \end{scope}
+
+\end{tikzpicture}
+\caption{Data Vault~2.0 topology. \textit{Author-generated.}}
+\label{fig:dv2-topology}
+\end{figure}
+
+\begin{itemize}[noitemsep, topsep=4pt]
+  \item \textbf{Hub} — Stores only the business key: the stable, source-independent identifier the organization uses to recognize an entity (a customer, an order, a product). A Hub holds no attributes and no relationships. Once created, it never changes; absorbing a new source entity means adding a new Hub alongside the existing ones.
+  \item \textbf{Link} — Stores the relationship between two or more Hubs, and nothing else. Relationships are tracked independently of the entities they connect. A new business relationship becomes a new Link; existing Hubs and Satellites remain untouched.
+  \item \textbf{Satellite} — Stores the descriptive, frequently changing attributes of a Hub or a Link. Each row carries a load timestamp; new versions are appended rather than overwritten, so the full attribute history accumulates as a natural consequence of the loading pattern.
+\end{itemize}
+
+\medskip
+
+Two further layers govern data governance \cite{varga2014}:
+
+\begin{itemize}[noitemsep, topsep=4pt]
+  \item \textbf{Raw Vault} — Captures source data exactly as received, applying no business logic. It is the auditable, unmodified source-of-record.
+  \item \textbf{Business Vault} — Holds derived constructs — computed satellites, bridge tables, interpreted business rules — isolated from the raw layer so that rule changes never rewrite source history.
+\end{itemize}
+
+Consumers do not query either vault layer directly. A downstream dimensional mart reshapes the vault into the star schemas that reporting tools expect \cite{kimball2013}.
+
+\subsection{Why This Topology Yields Structural Agility}
+\label{subsec:ch2-agility}
+
+The agility of Data Vault~2.0 follows directly from the decomposition: because keys, relationships, and context are stored separately, structural change is additive. Absorbing a new source means adding hubs, links, and satellites alongside the existing ones, not altering them.
+
+Loading is insert-only. The model never updates or deletes a row; it appends a new version with a fresh timestamp \cite{linstedt2015}. Full history is therefore a by-product of the loading pattern rather than a feature bolted on through slowly-changing-dimension logic.
+
+Insert-only loading also confines the blast radius of change. A structural change in one source touches only the objects attached to that source, leaving the rest of the model and its downstream consumers untouched. The cost of change scales with the change itself, not with the size of the model.
+
+\subsection{Operating Principles}
+\label{subsec:ch2-principles}
+
+Four operating principles turn the topology into a loadable, scalable system.
+
+\begin{itemize}[noitemsep, topsep=4pt]
+  \item[\textit{Hash-key surrogates}] Business keys are hashed into fixed-length surrogate keys so that loads can compute keys independently and in parallel, without lookups against previously loaded data \cite{linstedt2015}. This decouples the loading of each object and lets ingestion scale horizontally.
+  \item[\textit{Insert-only loading}] Loads only append. The absence of updates and deletes removes lock contention, makes loads idempotent and restartable, and yields a complete audit trail by construction \cite{vassiliadis2009}.
+  \item[\textit{Raw Vault / Business Vault separation}] The raw layer stays free of business logic so it can serve as the auditable source-of-record; derived logic is quarantined in the Business Vault, so a change to a business rule never rewrites raw history \cite{varga2014}.
+  \item[\textit{Downstream consumption mart}] The vault is optimized for loading and historization, not for querying. A dimensional mart materializes the user-facing layer, accepting query-time cost in exchange for load-time agility \cite{kimball2013}.
+\end{itemize}
+
+\subsection{DV2.0 Assessed Against Structural Scalability}
+\label{subsec:ch2-dv2-assessment}
+
+Mapped onto the five C1 structural dimensions, Data Vault~2.0 scores strongly on four and only partially on one. Table~\ref{tab:dv2-structural-assessment} records the assessment; the single partial score, volume, reflects the model's reliance on the underlying platform rather than any property of the modeling discipline itself.
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.35}
+\rowcolors{2}{white}{tblrowalt}
+\begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{3.8cm}|>{\raggedright\arraybackslash}p{2.0cm}|>{\raggedright\arraybackslash}X|}
+\hline
+\rowcolor{tblheader}
+\textcolor{white}{\textbf{C1 Dimension}} &
+\textcolor{white}{\textbf{DV2.0 Score}} &
+\textcolor{white}{\textbf{Evidence}} \\
+\hline
+Source integration &
+\textbf{Strong} &
+A new source maps to new hubs, links, and satellites; existing objects are untouched. \\
+\hline
+Schema evolution &
+\textbf{Strong} &
+Changes are additive and version-aware; no destructive rewrites of existing structures. \\
+\hline
+Volume and throughput growth &
+\textbf{Partial} &
+Hash keys and insert-only loading enable parallel ingestion, but raw scaling capacity is inherited from the host platform. \\
+\hline
+Historization and auditability &
+\textbf{Strong} &
+Insert-only loading retains complete, timestamped history as a by-product of the load pattern. \\
+\hline
+Loosely-coupled change propagation &
+\textbf{Strong} &
+Separation of keys, relationships, and context confines the blast radius of any structural change. \\
+\hline
+\end{tabularx}
+\caption{Data Vault~2.0 assessed against C1 structural-scalability dimensions. Scores are author assessments. \textit{Author-generated.}}
+\label{tab:dv2-structural-assessment}
+\end{table}
+
+\subsection{Documented Drawbacks}
+\label{subsec:ch2-drawbacks}
+
+The same separation that buys structural agility imposes design and implementation complexity. Modeling an entity across hubs, links, and satellites multiplies the number of objects, and getting the decomposition right demands skill that is scarce in practice. Adoption surveys report the skills requirement (48\%) and implementation complexity (35\%) as the leading barriers \todo{cite: BARC/Eckerson DV2.0 adoption survey}.
+
+Query performance is the second cost. Reconstructing a single business view means joining a hub to its links and satellites, so analytical queries become join-heavy and slow on the vault itself; the same surveys flag query performance (32\%) as a recurring complaint \todo{cite: BARC/Eckerson DV2.0 adoption survey}. The downstream mart exists precisely to absorb this cost, which is why vault data is never user-ready on its own.
+
+These drawbacks are not incidental. The join-heavy query profile and the mandatory consumption layer become structurally important when Data Vault~2.0 is composed with a file-based Lakehouse, whose performance characteristics differ sharply from the relational engines the model assumes. That composability question is examined in Section~\ref{sec:ch2-tension}.
+
+The standard is also a living one. Recent enhancements relax some of these costs: a virtualized load-end-date removes a maintenance-heavy update from satellite loading, and hybrid architectures push staging and hash-key computation onto a data lake before populating the vault \cite{giebler2019dv}. These moves already point toward the Lakehouse, and they motivate the analytical and compositional analysis that follows.
 
 \section{Analytical Integration Patterns}
 \label{sec:ch2-analytics}
