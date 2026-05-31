@@ -3,38 +3,79 @@
 
 \section*{Context}
 \addcontentsline{toc}{section}{Context}
-\todo{Write context.}
+\label{sec:intro-context}
+
+Three pressures are converging on the systems organizations use to make decisions, and together they outrun the assumptions on which those systems were built.
+
+The first pressure is organizational agility. Business environments now change faster than fixed schemas can follow. Mergers, new product lines, and regulatory shifts reshape an organization's information needs on a timescale of months. Each such event invalidates data models that were stable the year before \cite{kleppmann2017}. A schema fixed at design time becomes a liability the moment the business it describes moves.
+
+The second pressure is source heterogeneity and velocity. The number of data sources feeding the decision layer has grown sharply: transactional systems, streaming feeds, semi-structured and unstructured data, and change-data-capture pipelines all arrive at once. The volume and variety now exceed what a pre-designed schema can absorb without structural disruption \cite{vassiliadis2009, deltalake2020}. Integration that once targeted a handful of relational sources must now accommodate formats that were never specified in advance.
+
+The third pressure is rising analytical maturity. Organizations are moving along the descriptive, diagnostic, predictive, and prescriptive spectrum \cite{davenport2007}. Most remain at descriptive or diagnostic business intelligence, yet demand for predictive and prescriptive capability is growing steadily \cite{chen2012}. The decision layer is now expected to forecast and recommend, not only to report what already happened.
+
+These pressures bear on a specific object of study: \textit{Decision Support Information Systems} (DSIS) built on data-warehouse architectures. Classical warehouse designs --- the Inmon Corporate Information Factory \cite{inmon2005} and the Kimball dimensional model \cite{kimball2013} --- were engineered for a stable, pre-specified analytical perimeter. That assumption no longer holds.
 
 \section*{Problem Statement}
 \addcontentsline{toc}{section}{Problem Statement}
-\todo{Write problem statement.}
+\label{sec:intro-problem}
+
+Classical DSIS architectures force organizations to commit prematurely and rigidly to two things at once. The first is a fixed structural schema: column names, table shapes, and entity definitions decided during design and expensive to revise once data ingestion has begun. The second is a fixed analytical scope: typically descriptive reporting, which cannot be extended toward predictive or prescriptive capability without grafting external systems onto the pipeline.
+
+Both commitments are made before requirements stabilize. When the structure must change, the result is costly re-engineering of tables, mappings, and downstream reports. When analytical ambition grows, predictive capability is bolted on downstream rather than designed into the architecture. The commitment is premature because the business it serves is still moving, and rigid because revising either decision is disproportionately expensive.
+
+The literature addresses these two failures separately. Structural agility is studied through Data Vault~2.0 \cite{linstedt2015} and schema-evolution patterns \cite{kleppmann2017}. Analytical integration is studied through the Lakehouse paradigm \cite{armbrust2021} and open table formats such as Delta Lake \cite{deltalake2020}. The two run as distinct research conversations. No consolidated reference framework treats both dimensions of scalability jointly. The composability of the leading structural approach, Data Vault~2.0, with the leading open-format analytical paradigm, the Lakehouse, is asserted in industry practice but under-examined conceptually.
+
+This thesis takes that gap as its starting point. Under an explicit integration contract, the relational-lineage discipline of Data Vault~2.0 and the schema-on-read file layer of the Lakehouse compose into a coherent scalable DSIS. The conditions under which this holds, and the trade-offs it incurs, are the subject of the chapters that follow.
 
 \section*{Research Questions}
 \addcontentsline{toc}{section}{Research Questions}
+\label{sec:intro-rq}
 
-\noindent\textbf{RQ1 (structural):} \todo{Write RQ1.}
+\noindent\textbf{RQ1 (structural):} How can a DSIS architecture absorb new sources, schema changes, and volume growth without disruptive re-engineering?
 
-\noindent\textbf{RQ2 (analytical):} \todo{Write RQ2.}
+\noindent\textbf{RQ2 (analytical):} How can predictive/prescriptive capability be integrated \textit{natively} into the decision pipeline rather than bolted on downstream?
 
-\noindent\textbf{RQ3 (composability):} \todo{Write RQ3.}
+\noindent\textbf{RQ3 (composability):} Under what conditions can an agile relational-lineage modeling discipline (Data Vault~2.0) and a file-based Lakehouse paradigm be composed into a single coherent architecture, and what are the trade-offs?
 
 \section*{Objectives}
 \addcontentsline{toc}{section}{Objectives}
-\todo{Write objectives.}
+\label{sec:intro-objectives}
 
-\section*{Contributions Claimed}
-\addcontentsline{toc}{section}{Contributions Claimed}
+This thesis pursues four objectives, each tied to one or more research questions.
 
 \begin{itemize}
-    \item \textbf{C1 — Dual-scalability conceptualization} (Chapter~1): \todo{Write.}
-    \item \textbf{C2 — Composability analysis and criteria instrument} (Chapter~2): \todo{Write.}
-    \item \textbf{C3 — Reference framework and analytical evaluation} (Chapter~3): \todo{Write.}
+  \item Survey the landscape of DSIS architectural paradigms --- classical (Inmon, Kimball) and modern (Data Vault~2.0, Lakehouse, Delta Architecture) --- to identify structural and analytical capabilities and gaps. (\textrightarrow{} RQ1, RQ2)
+  \item Critically analyze the properties of Data Vault~2.0 and the Lakehouse paradigm along structural and analytical dimensions, identifying the conditions and tensions relevant to their composition. (\textrightarrow{} RQ3)
+  \item Construct a layered reference architecture that integrates Data Vault~2.0 as the agile structural layer with the Lakehouse as the native analytical layer, defined by a formal integration contract. (\textrightarrow{} RQ1, RQ2, RQ3)
+  \item Evaluate the proposed framework analytically against a criteria instrument derived from the critical analysis, using a non-empirical, literature-grounded comparative approach. (\textrightarrow{} RQ3)
+\end{itemize}
+
+\section*{Theoretical Constructs}
+\addcontentsline{toc}{section}{Theoretical Constructs}
+\label{sec:intro-constructs}
+
+The thesis develops three theoretical constructs, one per chapter.
+
+\begin{itemize}
+  \item \textbf{C1 --- Dual-scalability conceptualization} (Chapter~1): a formal definition of structural scalability and analytical scalability as distinct but coupled dimensions of DSIS evolution, with operationalizing criteria for each.
+  \item \textbf{C2 --- Composability analysis and criteria instrument} (Chapter~2): a critical examination of whether Data Vault~2.0 and the Lakehouse paradigm compose, culminating in a six-criteria evaluation grid grounded in the literature.
+  \item \textbf{C3 --- Reference framework and integration contract} (Chapter~3): a layered reference architecture with a formally stated integration contract between the agile structural layer and the native analytics layer, evaluated against the C2 criteria grid.
 \end{itemize}
 
 \section*{Research Methodology}
 \addcontentsline{toc}{section}{Research Methodology}
-\todo{Write methodology.}
+\label{sec:intro-methodology}
+
+The thesis is theoretical and proceeds without a prototype or experiment. It uses three methods.
+
+The first is a narrative and semi-systematic literature review. The review covers foundational texts (Inmon, Kimball, Linstedt) and peer-reviewed literature from 2020--2026, supplemented by authoritative industry and vendor primary sources that reflect current practice. Industry sources are flagged explicitly and are not treated as peer-reviewed evidence.
+
+The second is conceptual design. The reference framework (C3) is constructed through conceptual synthesis: defining layers, components, interfaces, and invariants, without a software prototype.
+
+The third is analytical, non-empirical evaluation. The framework is evaluated against the C2 criteria instrument through structured comparison with existing documented implementations. Validation is conceptual rather than experimental, and this thesis states that limit openly rather than concealing it.
 
 \section*{Thesis Outline}
 \addcontentsline{toc}{section}{Thesis Outline}
-\todo{Write outline.}
+\label{sec:intro-outline}
+
+Chapter~1 surveys the state of the art in DSIS architectures and introduces the dual-scalability conceptualization (C1). Chapter~2 critically analyzes Data Vault~2.0 and the Lakehouse paradigm, develops the composability analysis, and delivers the six-criteria evaluation instrument (C2). Chapter~3 constructs the layered reference framework with its integration contract and conducts the analytical evaluation (C3). The General Conclusion answers RQ1, RQ2, and RQ3 explicitly, states limitations, and identifies directions for future work.

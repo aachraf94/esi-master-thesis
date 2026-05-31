@@ -35,7 +35,7 @@ This research addresses the problem of scalability in decision-making architectu
 
 ---
 
-## Contributions
+## Theoretical Constructs
 
 | | Chapter | Description |
 |---|---|---|
