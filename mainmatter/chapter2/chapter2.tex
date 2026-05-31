@@ -3,7 +3,18 @@
 
 \section*{Introduction}
 \addcontentsline{toc}{section}{Introduction}
-\todo{Write.}
+
+Chapter~1 established that scalability in decision support architectures has two independent dimensions: structural scalability, the capacity to absorb source change without re-engineering; and analytical scalability, the capacity to reach progressively higher levels of the decision support maturity spectrum. It also established that no surveyed paradigm satisfies both simultaneously. That finding is the entry point for this chapter.
+
+This chapter moves from survey to critical analysis. It examines the two candidate components of a dual-scalable architecture — Data Vault~2.0 on the modeling side, and the Lakehouse's native analytics stack on the analytical side — not as independent topics but as elements that must eventually compose. The four sections converge toward a single question: do they actually compose, and if so, under what conditions and with what trade-offs?
+
+The argument proceeds as follows:
+\begin{itemize}[noitemsep, topsep=4pt]
+  \item Section~\ref{sec:ch2-dv2} examines Data Vault~2.0's structural mechanics and maps them onto the structural-scalability dimensions defined in C1, acknowledging both documented strengths and documented drawbacks.
+  \item Section~\ref{sec:ch2-analytics} examines the analytical integration patterns available in modern Lakehouse pipelines and maps them onto the analytical-scalability dimensions.
+  \item Section~\ref{sec:ch2-tension} confronts the two components directly, identifying where they align and where they conflict — this is the intellectual core of the chapter.
+  \item Section~\ref{sec:ch2-criteria} synthesizes the analysis into a criteria grid (C2), the evaluation instrument that Chapter~3 will apply.
+\end{itemize}
 
 \section{Data Vault 2.0 and the Claim to Structural Agility}
 \label{sec:ch2-dv2}
