@@ -1,0 +1,113 @@
+% ============================================================
+%  settings.tex — Fonts, spacing, colors, headers, chapter style
+%  Loaded by main.tex via \input{config/settings}
+% ============================================================
+
+% ── Language setup ───────────────────────────────────────────────────────────
+\setmainlanguage{english}
+\setotherlanguage[calendar=gregorian]{arabic}
+\setotherlanguage{french}
+
+% ── Fonts ────────────────────────────────────────────────────────────────────
+\setmainfont{Times New Roman}
+\setsansfont{Arial}
+\setmonofont{Courier New}
+\newfontfamily\arabicfont[Script=Arabic, Scale=1.1]{Arial}
+
+% ── Graphics paths ───────────────────────────────────────────────────────────
+\graphicspath{
+    {assets/logos/}
+    {assets/global-figures/}
+    {mainmatter/chapter1/figures/}
+    {mainmatter/chapter2/figures/}
+    {mainmatter/chapter3/figures/}
+}
+
+% ── Colors ───────────────────────────────────────────────────────────────────
+% esiblue kept for logos/figures only — do NOT use in text or headings
+\definecolor{esiblue}{RGB}{0, 84, 166}
+\definecolor{codegray}{RGB}{160, 160, 160}   % line numbers only
+\definecolor{backcolour}{RGB}{248, 248, 248}  % subtle code background
+
+% ── Line spacing ─────────────────────────────────────────────────────────────
+\onehalfspacing
+
+% ── Paragraph style ──────────────────────────────────────────────────────────
+\setlength{\parindent}{1.5em}   % standard academic indent
+\setlength{\parskip}{4pt}       % subtle breathing space between paragraphs
+
+% Force first-paragraph indent after ALL headings (works with titlesec + indentfirst).
+% Makes \@afterindentfalse behave like \@afterindenttrue globally.
+\makeatletter
+\let\@afterindentfalse\@afterindenttrue
+\makeatother
+
+% ── Code listing style ───────────────────────────────────────────────────────
+\lstdefinestyle{thesis}{
+    backgroundcolor  = \color{backcolour},
+    basicstyle       = \ttfamily\small,
+    keywordstyle     = \bfseries,
+    commentstyle     = \itshape,
+    stringstyle      = \normalfont\ttfamily,
+    numberstyle      = \tiny\color{codegray},
+    breaklines       = true,
+    frame            = single,
+    numbers          = left,
+    numbersep        = 8pt,
+    showstringspaces = false,
+    tabsize          = 2,
+    captionpos       = b,
+}
+\lstset{style=thesis}
+
+% ── Caption style ────────────────────────────────────────────────────────────
+\captionsetup{
+    font       = small,
+    labelfont  = bf,
+    labelsep   = period,
+    justification = centering,
+}
+
+% ── Theorem environments ─────────────────────────────────────────────────────
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[chapter]
+\newtheorem{example}{Example}[chapter]
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[chapter]
+
+% ── Chapter / section title style ────────────────────────────────────────────
+% Non-starred \titlespacing preserves first-paragraph indentation.
+\titleformat{\chapter}[display]
+    {\normalfont\huge\bfseries}
+    {\chaptertitlename~\thechapter}
+    {16pt}{\Huge}
+\titlespacing{\chapter}{0pt}{-20pt}{40pt}
+
+\titlespacing{\section}{0pt}{1.5ex plus .5ex minus .2ex}{.5ex plus .1ex}
+\titlespacing{\subsection}{0pt}{1.2ex plus .4ex minus .2ex}{.4ex plus .1ex}
+\titlespacing{\subsubsection}{0pt}{1ex plus .3ex minus .1ex}{.3ex plus .1ex}
+
+% ── TOC dots for chapters ────────────────────────────────────────────────────
+\renewcommand{\cftchapleader}{\cftdotfill{\cftdotsep}}
+
+% ── Headers & footers ────────────────────────────────────────────────────────
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\nouppercase{\leftmark}}
+\fancyhead[R]{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% Plain style (chapter-opening pages)
+\fancypagestyle{plain}{
+    \fancyhf{}
+    \fancyfoot[C]{\small\thepage}
+    \renewcommand{\headrulewidth}{0pt}
+}
+
+% ── PDF metadata ─────────────────────────────────────────────────────────────
+\hypersetup{
+    pdftitle    = {Scalable Architecture for Decision Support Information Systems},
+    pdfauthor   = {ABDELKEBIR Achraf},
+    pdfsubject  = {Master's Thesis — ESI 2025/2026},
+    pdfkeywords = {Data Vault 2.0, Lakehouse, Scalable Architecture, DSIS, Predictive Analytics, ESI},
+}

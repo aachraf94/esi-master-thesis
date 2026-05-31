@@ -1,0 +1,134 @@
+% ── Chapter 3: Proposed Reference Framework and Analytical Evaluation ────────
+% Target length: 15–18 pages | Carries contribution C3
+% This is the chapter the jury weighs most.
+\chapter{Proposed Reference Framework and Analytical Evaluation}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section*{Introduction}
+\addcontentsline{toc}{section}{Introduction}
+
+\todo{Write chapter introduction. Signal what the jury will find: (1)~a formal artifact
+with named layers, component definitions, and an integration contract — not a block
+diagram with no specification; (2)~a methodical, criteria-based evaluation — not a bare
+opinion table. Both attack surfaces are closed in this chapter.}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Requirements and Design Rationale}
+\label{sec:ch3-requirements}
+
+\todo{Derive requirements directly and traceably from RQ1--RQ3 and the ten
+dual-scalability dimensions from \S\ref{sec:ch1-scalability}. Present as a requirements
+table: each requirement → the RQ it addresses → the scalability dimension it serves.
+This traceability is what makes the framework look engineered rather than invented.}
+
+% Visual: requirements × RQ × dimension traceability table.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{The Reference Framework}
+\label{sec:ch3-framework}
+
+% *** CONTRIBUTION C3 — do not stop at a picture ***
+% Specify the framework with: layered model, component definitions, integration
+% contract, and numbered design invariants.
+
+\subsection{Layered Reference Model}
+\label{subsec:ch3-layers}
+
+\todo{Define five named layers with their responsibilities:
+\begin{enumerate}
+    \item \textit{Ingestion \& staging layer} — heterogeneous sources, CDC, lake landing.
+    \item \textit{Agile modeling layer} — DV2.0 Raw Vault + Business Vault on an open
+    table format (Delta/Iceberg).
+    \item \textit{Consumption/serving layer} — dimensional marts and serving views for BI.
+    \item \textit{Native analytics layer} — feature pipelines, model training/serving,
+    feedback loops; positioned to read from the modeling layer, not bolted past the marts.
+    \item \textit{Governance \& metadata plane} — cross-cutting: lineage, schema registry,
+    data catalog.
+\end{enumerate}}
+
+% Visual: layered reference architecture diagram with the governance plane cross-cutting.
+
+\subsection{Component Definitions}
+\label{subsec:ch3-components}
+
+\todo{For each component in the five layers, state: (1)~inputs, (2)~outputs,
+(3)~responsibility, (4)~which scalability dimension it serves. This is what makes
+the framework a formal artifact, not a sketch.}
+
+\subsection{The Integration Contract}
+\label{subsec:ch3-contract}
+
+\todo{This is the centerpiece — it resolves or explicitly scopes the composability tension
+from \S\ref{sec:ch2-tension}. Define precisely: (1)~what the agile modeling layer
+guarantees to the native analytics layer (e.g., historized, business-keyed,
+lineage-stamped, feature-ready entities); (2)~how features are derived from
+Satellites/Business Vault; (3)~how schema evolution in the modeling layer is propagated
+without breaking trained models; (4)~how the open table format mediates both
+relational-lineage discipline and ML file access. State assumptions explicitly where
+you scope rather than fully solve — honesty here is strength, not weakness.}
+
+\subsection{Design Rules and Invariants}
+\label{subsec:ch3-invariants}
+
+\todo{Enumerate numbered design rules. Numbered invariants are inexpensive to write and
+read as genuine formalism — they are what a jury can probe one by one. Examples to
+develop and refine:
+\begin{enumerate}
+    \item[R1.] Every analytical feature must trace to a historized Satellite attribute.
+    \item[R2.] The native analytics layer reads exclusively from the agile modeling layer
+    or the consumption/serving layer; it must never read raw staging data directly.
+    \item[R3.] Schema changes in the Raw Vault must be additive (new Satellites or
+    Satellite columns); destructive changes are prohibited.
+    \item[R4.] Business keys must be stable and source-system-independent (hash keys).
+    \item[R5.] Every data entity entering the analytics layer must carry a lineage stamp
+    traceable to its source Satellite and load timestamp.
+\end{enumerate}
+Extend and adjust these invariants during writing.}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Evaluation Methodology}
+\label{sec:ch3-methodology}
+
+\todo{Before any comparison, define \emph{how} you evaluate. Short but mandatory.
+Cover: (1)~method type — conceptual, criteria-based comparative assessment grounded in
+literature evidence; explicitly non-empirical; (2)~the six criteria from
+\S\ref{sec:ch2-criteria} restated with their rubric definitions; (3)~scoring scheme —
+qualitative levels (Low/Medium/High) with the meaning of each level defined
+\emph{per criterion}; (4)~evidence rule — every rating must be justified by a cited
+source or a stated argument, no bare scores; (5)~threats to validity stated up front
+(subjectivity, literature gaps, vendor-source bias).}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Comparative Study}
+\label{sec:ch3-comparison}
+
+\todo{Apply the six-criteria methodology systematically across four approaches:
+\textbf{Kimball}, \textbf{Inmon}, \textbf{DV2.0}, and the \textbf{proposed framework}.
+Present as an evaluation matrix (approaches × criteria). Follow with a paragraph of
+justification per cell-cluster (not per cell) backed by citations.
+Important: the proposed framework must \emph{not} trivially win every criterion — show
+where it inherits DV2.0's implementation complexity cost. A framework that honestly
+concedes weaknesses is more credible than one that claims perfection.
+Anchors: BARC/Eckerson adoption figures (AnalyticsCreator 2025); Kimball \& Ross 2013;
+Linstedt \& Olschimke 2015; Armbrust et al.\ 2021.}
+
+% Visual: evaluation matrix (approaches × criteria) with rubric legend.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Discussion}
+\label{sec:ch3-discussion}
+
+\todo{Cover: (1)~trade-offs the framework makes and why; (2)~conditions of applicability
+— when this architecture is worth its complexity (high source heterogeneity + ambition
+toward predictive maturity) vs when it is overkill (stable, descriptive-only contexts);
+(3)~threats to validity revisited; (4)~limitations — no empirical validation, reliance
+on industry evidence for composability claims.}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section*{Conclusion}
+\addcontentsline{toc}{section}{Conclusion}
+
+\todo{Summarize C3: the layered reference framework, the integration contract, the design
+invariants, and the evaluation results. Confirm which RQs are addressed and how. Bridge
+to the General Conclusion, which answers all three RQs and states limitations and future
+work.}
