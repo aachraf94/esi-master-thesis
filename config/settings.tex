@@ -61,12 +61,16 @@
 \lstset{style=thesis}
 
 % ── Caption style ────────────────────────────────────────────────────────────
+% Custom label format produces "Table 1.1 ---" so captions need no manual prefix.
+\DeclareCaptionLabelFormat{thesisdash}{#1~#2~---}
 \captionsetup{
     font       = small,
     labelfont  = bf,
-    labelsep   = period,
+    labelsep   = space,
     justification = centering,
 }
+\captionsetup[table]{labelformat=thesisdash}
+\captionsetup[figure]{labelformat=thesisdash}
 
 % ── Theorem environments ─────────────────────────────────────────────────────
 \theoremstyle{definition}

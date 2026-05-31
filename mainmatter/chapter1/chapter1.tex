@@ -3,39 +3,226 @@
 
 \section*{Introduction}
 \addcontentsline{toc}{section}{Introduction}
-\todo{Write.}
+
+This chapter builds the conceptual instrument the rest of the thesis depends on. The survey literature on decision support architectures is large, but it treats structural evolution and analytical capability as separate concerns. No single lens reads an architecture for both at once. This chapter supplies that lens.
+
+The argument proceeds from vocabulary to instrument:
+\begin{itemize}[noitemsep, topsep=4pt]
+  \item Section~\ref{sec:ch1-dsis} positions the data warehouse as the operational core of DSIS and traces the field's movement from reporting to modern analytical platforms.
+  \item Section~\ref{sec:ch1-dw-paradigms} examines the two classical modeling paradigms and the shared assumption that limits them.
+  \item Section~\ref{sec:ch1-modern-arch} surveys the modern architectures that arose to relax that assumption.
+  \item Section~\ref{sec:ch1-maturity} sets out the analytical maturity spectrum and the architectural demands each level imposes.
+  \item Section~\ref{sec:ch1-scalability} consolidates these observations into the dual-scalability conceptualization, the construct C1.
+  \item Section~\ref{sec:ch1-gap} re-reads every surveyed approach through that lens and isolates the research gap.
+\end{itemize}
+
+The survey sections are not neutral. Each one is written to answer a single question about every paradigm it describes: does the property in question concern structural evolution or analytical capability? That question is what turns a reading list into the instrument delivered in Section~\ref{sec:ch1-scalability}.
 
 \section{Decision Support Information Systems: Concepts and Evolution}
 \label{sec:ch1-dsis}
-\todo{Write.}
+
+Decision Support Information Systems are computer-based systems that supply managers with the data and analysis needed for non-routine decisions. The term descends from the \textit{Decision Support System} (DSS) concept and its later consolidation under business intelligence, defined as the technologies and practices for gathering, integrating, and analyzing information to improve decision making \cite{watson2009}. Within this lineage, the data warehouse became the operational core: the integrated, query-oriented store that feeds the analytical layer. This thesis uses DSIS to denote precisely these data-warehouse-centric systems.
+
+The field evolved through four broad eras, each widening the analytical scope of the decision layer. Table~\ref{tab:dsis-evolution} summarizes this progression; one constant runs through all four: the data warehouse core was preserved while the questions the system could answer were widened. The trajectory from reporting to prescriptive analysis defines business intelligence and analytics as a research area \cite{chen2012, davenport2007}.
+
+\begin{table}[H]
+\centering
+\caption{Evolution of decision support paradigms.}
+\label{tab:dsis-evolution}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Era} & \textbf{Dominant paradigm} & \textbf{Analytical scope} \\
+\midrule
+1960s--1980s & Management information systems & Reporting \\
+1990s--2000s & Data warehouse + OLAP & Descriptive \\
+2000s--2010s & Business intelligence platforms & Descriptive + diagnostic \\
+2010s--present & Modern platforms (Lakehouse, cloud DW) & Full spectrum \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent Table~\ref{tab:dsis-evolution} shows that each era preserved the data warehouse as its core while widening the questions the system could answer. A recent peer-reviewed survey traces the same arc at the storage layer, from the data warehouse through the data lake to the Lakehouse as successive stages of enterprise data management \cite{nambiar2022}. The constant across all four eras is the assumption that requirements can be specified before data ingestion begins. That assumption is what classical warehouse modeling encodes, and it is where the next section opens.
 
 \section{Classical Data Warehouse Modeling Paradigms}
 \label{sec:ch1-dw-paradigms}
-\todo{Write.}
+
+Two modeling paradigms have governed data warehouse design for three decades, and both encode the assumption of a stable, pre-specified schema. The Inmon Corporate Information Factory and the Kimball dimensional model differ sharply in approach, yet they share the limitation that motivates this thesis. A third paradigm, Data Vault~2.0, was designed to escape that limitation and is previewed at the end of this section.
+
+The Inmon \textit{Corporate Information Factory} (CIF) builds a normalized, enterprise-wide warehouse top-down \cite{inmon2005}. Its core is a subject-oriented, integrated, non-volatile, time-variant repository in third normal form, from which dependent data marts are derived. Its strength is enterprise integration: a single normalized model enforces consistency across the organization. Its weakness is long time-to-value and schema rigidity, because the enterprise model must be substantially complete before it delivers, and structural revision propagates through the normalized core.
+
+The Kimball \textit{dimensional model} builds the warehouse bottom-up from business processes \cite{kimball2013}. It organizes data into star and snowflake schemas of fact tables surrounded by conformed dimensions, with slowly changing dimension (SCD) types 1, 2, and 3 recording attribute history at different fidelities. The supporting ETL discipline is codified separately \cite{kimball2004etl}. Its strength is query simplicity and fast delivery of business intelligence. Its weakness is that schema changes are expensive and auditability is partial, since SCD mechanisms record only the dimensional changes the designer anticipated.
+
+Read against a formal design perspective, the two paradigms diverge on method but converge on a constraint \cite{golfarelli2009}. Both assume a stable analytical perimeter and a fixed schema fixed at design time. Neither was engineered for continuous schema evolution, and neither offers a native path toward predictive or prescriptive capability. The structural rigidity is built into the modeling discipline itself, not into any particular implementation.
+
+Data Vault~2.0 is the third major modeling paradigm and the one designed specifically to absorb schema evolution and source change without re-engineering \cite{linstedt2015}. It decomposes the model into hubs, links, and satellites so that structural change is additive rather than destructive. This thesis previews it here only to complete the comparative frame; Chapter~2 examines its mechanics and limits in depth. Table~\ref{tab:dw-paradigms} positions all three paradigms across the properties that the dual-scalability lens later formalizes.
+
+\begin{table}[H]
+\centering
+\caption{Classical data warehouse modeling paradigms: comparative overview.}
+\label{tab:dw-paradigms}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabularx}{\linewidth}{@{}l>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X@{}}
+\toprule
+\textbf{Property} & \textbf{Inmon CIF} & \textbf{Kimball} & \textbf{Data Vault 2.0 (preview)} \\
+\midrule
+Modeling approach & Top-down, enterprise & Bottom-up, process & Source-aligned, additive \\
+Schema type & Normalized (3NF) & Dimensional (star) & Hub--link--satellite \\
+Integration strategy & Central normalized core & Conformed dimensions & Business keys + links \\
+Time-to-value & Long & Fast & Moderate \\
+Schema flexibility & Low & Low & High \\
+Auditability & Partial & Partial (SCD) & Full, non-destructive \\
+Analytical scope & Descriptive & Descriptive & Descriptive \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\noindent Table~\ref{tab:dw-paradigms} shows that the three paradigms differ widely on structural properties yet remain identical on analytical scope, all capped at descriptive reporting. The modern architectures surveyed next emerged precisely to relax the structural and analytical limits that this table exposes.
 
 \section{Modern Decision-Making Architectures}
 \label{sec:ch1-modern-arch}
-\todo{Write.}
+
+Modern architectures arose to address pressures the classical warehouse could not absorb: data velocity, source heterogeneity, and demand for machine learning on the same data. Each architecture relaxes a specific constraint, and reading them through the dual-scalability lens shows that they target the analytical and volume dimensions far more than the structural-modeling one.
+
+The \textit{Lambda architecture} addresses the trade-off between latency and accuracy by running two pipelines in parallel \cite{marz2015} \textit{(industry practice; not peer-reviewed)}. A batch layer recomputes accurate views over an immutable master dataset, while a speed layer serves low-latency approximate results over recent data, and a serving layer merges the two. Its operational cost is structural: the same business logic must be implemented and maintained twice, once per layer.
+
+The \textit{Kappa architecture} eliminates that duplication by treating all processing as stream processing over a replayable log \cite{kreps2014} \textit{(industry practice; not peer-reviewed)}. A single code path handles both real-time and historical computation, reprocessing history by replaying the log when logic changes. Lambda and Kappa both relieve velocity pressure, but neither introduces a discipline for structural schema evolution; both assume the processing logic, not the source schema, is what changes.
+
+The data lake and its successor the Lakehouse address storage flexibility and workload plurality. The \textit{data lake} introduced schema-on-read over open file formats, accepting raw data of any shape, but it lacked governance, transactional semantics, and business-intelligence-grade query performance. The \textit{Lakehouse} resolves these gaps by layering ACID table semantics and a metadata layer over open columnar formats such as Parquet and ORC \cite{armbrust2021}. Open table layers including Delta Lake \cite{deltalake2020}, Iceberg, and Hudi provide transactions, time travel, and schema enforcement directly on the lake, enabling business intelligence and machine learning to run on one governed store. Peer-reviewed surveys confirm this positioning as the consolidating direction of enterprise data architecture \cite{harby2024, schneider2024}. Crucially, the open table layer governs file transactions and schema enforcement, not entity-level lineage or historization discipline — the structural modeling gap remains.
+
+The \textit{Delta architecture}, organized as a medallion of Bronze, Silver, and Gold zones, is the dominant implementation pattern for the Lakehouse \cite{databricks2022} \textit{(industry practice; not peer-reviewed)}. The Bronze zone holds raw ingested data, the Silver zone holds cleansed and conformed data, and the Gold zone holds business-ready aggregates. The pattern maps the classical ETL/ELT pipeline \cite{vassiliadis2009} onto governed table layers, so that refinement is incremental and each zone is independently queryable.
+
+\fig[0.98\textwidth]{fig_arch_evolution.png}{Data architecture evolution: from Classical DW to Lakehouse. Each arrow labels the constraint relaxed by the transition. The Medallion pattern is an implementation discipline within the Lakehouse, not a fourth peer architecture. \textit{Author-generated.}}{arch-evolution}
+
+These architectures advance the analytical and volume frontiers, yet none supplies the modeling discipline that governs structural lineage and historization. Their value, and their gap, becomes precise only once the analytical demand they serve is itself specified, which the maturity spectrum does next.
 
 \section{The Analytical Maturity Spectrum}
 \label{sec:ch1-maturity}
-\todo{Write.}
+
+Analytical capability progresses through four levels, and each level imposes a sharper architectural demand than the last. The maturity spectrum runs from descriptive to diagnostic to predictive to prescriptive analysis \cite{gartner2012ascendancy} \textit{(industry practice; not peer-reviewed)}. Descriptive analysis answers what happened; diagnostic analysis answers why it happened; predictive analysis answers what will happen; prescriptive analysis answers what should be done. Each step adds a question the architecture must be built to answer.
+
+The architectural requirements rise steeply across the spectrum. Descriptive and diagnostic analysis are served by the data warehouse and OLAP. Predictive analysis requires feature pipelines and a machine learning training capability grounded in statistical learning \cite{jordan2015}. Prescriptive analysis requires a closed feedback loop, model governance, and data fresh enough to act on, and where decisions run over streaming data it requires online learning over evolving distributions \cite{bifet2018}. The higher levels are not extensions of reporting; they demand a different pipeline shape. Table~\ref{tab:maturity-spectrum} maps each level to its architectural requirement.
+
+\begin{table}[H]
+\centering
+\caption{Analytical maturity spectrum and corresponding architectural requirements.}
+\label{tab:maturity-spectrum}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabularx}{\linewidth}{@{}l>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X@{}}
+\toprule
+\textbf{Level} & \textbf{Question answered} & \textbf{Key capability required} & \textbf{Typical architecture} \\
+\midrule
+Descriptive & What happened? & Aggregation, reporting & DW + OLAP \\
+Diagnostic & Why did it happen? & Drill-down, correlation & DW + OLAP \\
+Predictive & What will happen? & Feature pipelines, ML training & ML platform + features \\
+Prescriptive & What should be done? & Feedback loops, model governance, fresh data & Closed-loop pipeline \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\noindent Table~\ref{tab:maturity-spectrum} shows that the jump from diagnostic to predictive is where the architecture, not just the query, must change. The empirical reality is that most organizations remain at the descriptive and diagnostic levels, with industry surveys reporting that the large majority have not reached transformational analytics maturity \cite{gartner2018maturity} \textit{(industry practice; not peer-reviewed)}. A peer-reviewed review of maturity models adds the relevant caution: the consulting models in common use lack theoretical grounding, leaving maturity defined without a rigorous instrument \cite{dataanalyticsmaturity2024}. That absence is part of what the next section repairs.
+
+The implication is structural, not incremental. Reaching the prescriptive level requires the decision pipeline to be designed for native analytical capability from the outset, rather than extended with downstream additions. This is the demand that the analytical scalability axis — one half of the dual construct defined next — is built to measure.
 
 \section{Conceptual Framing of Scalability in DSIS}
 \label{sec:ch1-scalability}
 
+The survey reveals a consistent split: existing approaches advance either structural evolution or analytical integration, but never frame both as dimensions of one property, and never combine them into a single instrument. Data Vault~2.0 advances structural evolution; the Lakehouse advances analytical integration. Neither is articulated as a form of \textit{scalability}, and the two are never read together. This section closes that gap by formalizing both as the construct C1.
+
+This thesis defines \textit{scalability in DSIS} as the capacity of the system to grow, structurally and analytically, without requiring re-engineering of the existing architecture. The definition resolves into two distinct axes. Structural scalability concerns how the system absorbs change in its data and sources. Analytical scalability concerns how far the system can progress in analytical capability. The two are made assessable by characterizing each with five concrete dimensions.
+
 \subsection{Structural Scalability}
 \label{subsec:ch1-structural}
-\todo{Write.}
+
+Structural scalability is the capacity of a DSIS to evolve its data structure and integration footprint without disruptive re-engineering of the existing architecture. Without it, every new source or schema change forces a partial rebuild. Five dimensions characterize it:
+
+\begin{description}[noitemsep, topsep=4pt, leftmargin=1.8em, labelwidth=!, labelsep=0.5em]
+  \item[\textit{Source integration}] the cost of absorbing a new heterogeneous data source, measured in effort, schema impact, and pipeline disruption.
+  \item[\textit{Schema evolution}] the cost and blast radius of structural changes such as column renames, entity splits, and type changes, and the degree to which those changes are non-destructive and version-aware.
+  \item[\textit{Volume and throughput growth}] the capacity to scale data volume and ingestion load without architectural redesign.
+  \item[\textit{Historization and auditability}] the completeness and non-destructiveness of the historical record and the ability to audit changes over time.
+  \item[\textit{Loosely-coupled change propagation}] the degree to which a structural change in one source or layer is isolated from downstream consumers.
+\end{description}
+
+\noindent Together these five dimensions make structural scalability an assessable property rather than a slogan.
 
 \subsection{Analytical Scalability}
 \label{subsec:ch1-analytical}
-\todo{Write.}
+
+Analytical scalability is the capacity of a DSIS to progress along the analytical maturity spectrum, from descriptive toward prescriptive, with advanced capability integrated natively in the decision pipeline rather than bolted on downstream. Without it, predictive and prescriptive capability can only be grafted externally, outside the governed pipeline. Five dimensions characterize it:
+
+\begin{description}[noitemsep, topsep=4pt, leftmargin=1.8em, labelwidth=!, labelsep=0.5em]
+  \item[\textit{Maturity reach}] the highest maturity level the architecture supports natively, from descriptive through prescriptive.
+  \item[\textit{Native model integration}] the degree to which machine learning and predictive models are first-class citizens of the pipeline rather than external appendages.
+  \item[\textit{Data readiness for analytics}] the freshness, trust, and feature availability of data at the point of analytical consumption.
+  \item[\textit{Workload plurality}] the capacity to serve business-intelligence and machine-learning workloads from the same governed data layer without duplication.
+  \item[\textit{Lifecycle support}] the support for model retraining, feedback loops, and model governance within the pipeline.
+\end{description}
+
+\noindent These five dimensions make analytical scalability assessable on the same footing as its structural counterpart.
+
+\begin{table}[H]
+\centering
+\caption{Dual-scalability dimensions: Construct C1.}
+\label{tab:c1-dual-scalability}
+\renewcommand{\arraystretch}{1.25}
+\begin{tabular}{@{}llp{7cm}@{}}
+\toprule
+\textbf{Axis} & \textbf{Dimension} & \textbf{Definition} \\
+\midrule
+\multirow{5}{*}{\textbf{Structural}}
+  & Source integration & Cost of absorbing a new heterogeneous source \\
+  & Schema evolution & Cost and isolation of structural changes \\
+  & Volume / throughput & Scaling capacity without redesign \\
+  & Historization & Non-destructive full-history retention \\
+  & Change propagation & Blast-radius isolation of structural change \\
+\midrule
+\multirow{5}{*}{\textbf{Analytical}}
+  & Maturity reach & Highest maturity level natively supported \\
+  & Native model integration & ML as first-class pipeline citizen \\
+  & Data readiness & Freshness, trust, feature availability \\
+  & Workload plurality & BI + ML on same governed layer \\
+  & Lifecycle support & Retraining, feedback, model governance \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent Table~\ref{tab:c1-dual-scalability} presents the ten dimensions constituting C1; Chapters~2 and~3 evaluate existing approaches and the proposed framework against these dimensions.
+
+% VISUAL_MANUAL: Figure 1.2 — C1 Dual-Scalability Axes (conceptual diagram)
+% Tool: draw.io
+% Description: Two orthogonal arrows crossing at a labeled origin "C1: Dual-Scalability".
+%   Horizontal arrow (blue) = Structural scalability; 5 dimension nodes spaced along it:
+%     Source integration, Schema evolution, Volume/throughput, Historization, Change propagation.
+%   Vertical arrow (orange) = Analytical scalability; 5 dimension nodes spaced along it:
+%     Maturity reach, Native model integration, Data readiness, Workload plurality, Lifecycle support.
+%   Four quadrant labels (light grey text): top-right = "Target: fully scalable DSIS";
+%     top-left = "Analytically capable, structurally undisciplined (Data Lake)";
+%     bottom-right = "Structurally strong, analytically capped (Data Vault 2.0)";
+%     bottom-left = "Capped on both axes (Classical DW)".
+% Priority: HIGH — C1 is the chapter's contribution; makes "orthogonal" geometric, not just verbal.
+
+The two axes are orthogonal. A system can be structurally scalable while analytically capped, as classical Data Vault~2.0 is, absorbing schema change yet reaching no further than descriptive analysis. A system can be analytically capable while structurally undisciplined, as a raw data lake is, supporting machine learning yet governing neither lineage nor historization. A coherent scalable DSIS must therefore address both axes jointly, not trade one for the other. The next section applies this lens to every surveyed approach and shows that none does.
 
 \section{Synthesis: Critical Reading and the Research Gap}
 \label{sec:ch1-gap}
-\todo{Write.}
+
+Read through the dual-scalability lens, no surveyed approach scores well on both axes at once. Each one is strong on a subset of dimensions and weak on the rest, and the pattern of strengths and weaknesses is the research gap. This section assesses the four candidate approaches in turn, then states the gap.
+
+The classical paradigms, Inmon CIF and Kimball, are moderate structurally and capped analytically. Volume growth is manageable, but schema evolution is poor, source integration is rigid, historization is limited to anticipated SCD types, and change propagation is tightly coupled through the normalized core or conformed dimensions. Analytically they stop at descriptive and diagnostic, and they cannot progress without an external bolt-on.
+
+The data lake inverts that profile on the structural side. It scales volume and absorbs heterogeneous sources easily, but it imposes no modeling discipline, so schema-evolution governance, historization, and change-propagation isolation are all weak. Its analytical ceiling is potentially high, yet poor data quality and absent governance undermine data readiness, so the potential is rarely realized in practice.
+
+The Lakehouse is strong analytically and partial structurally. ACID semantics, unified business-intelligence and machine-learning workloads, and open formats give it strength across every analytical dimension. Structurally it handles volume and schema-on-read well, but it provides no modeling discipline for structural lineage and historization equivalent to Data Vault~2.0.
+
+Data Vault~2.0 is strong structurally and limited analytically — the mirror image of the Lakehouse. It is designed for schema evolution, source integration, historization, and change propagation. It does not natively support machine-learning workloads or progression along the maturity spectrum. Chapter~2 examines this profile in depth. Figure~\ref{fig:c1-heatmap} consolidates the four assessments against all ten C1 dimensions.
+
+\fig[0.92\textwidth]{fig_c1_heatmap.png}{Surveyed architectures assessed against the C1 dual-scalability dimensions. Columns are grouped by axis (Structural left, Analytical right). Cell shading encodes the ordinal score: \checkmark~Strong (dark) / $\sim$~Partial (mid) / \texttimes~Weak (light). Scores are author assessments, not measured values. Column abbreviations: Src source integration, Sch schema evolution, Vol volume, His historization, Prp change propagation, Mat maturity reach, ML native model integration, Rdy data readiness, Wkl workload plurality, Lif lifecycle support. \textit{Author-generated.}}{c1-heatmap}
+
+\noindent Figure~\ref{fig:c1-heatmap} makes the gap geometric: strength clusters on one half or the other, and no row fills both halves. The structural strengths of Data Vault~2.0 and the analytical strengths of the Lakehouse are near-complementary — their fills are close to jigsaw pieces. Their combination is therefore the most promising candidate for a jointly scalable DSIS, yet the composability of the two is asserted in industry practice and under-examined conceptually. That examination is the task of Chapter~2.
 
 \section*{Conclusion}
 \addcontentsline{toc}{section}{Conclusion}
-\todo{Write.}
+
+This chapter delivered two things. The survey grounded the vocabulary of Decision Support Information Systems, from the classical warehouse paradigms through the modern Lakehouse and the analytical maturity spectrum. Section~\ref{sec:ch1-scalability} then formalized that survey into the construct C1: structural and analytical scalability as two orthogonal axes, each operationalized by five assessable dimensions — the single lens the literature had been missing.
+
+Applying C1 in Section~\ref{sec:ch1-gap} exposed the gap. No single existing approach is strong on both axes, and the near-complementary profiles of Data Vault~2.0 and the Lakehouse make their combination the leading candidate, with their composability still unexamined. Chapter~2 subjects Data Vault~2.0 and the Lakehouse paradigm to a systematic critical analysis along these dimensions, developing the composability examination (C2).

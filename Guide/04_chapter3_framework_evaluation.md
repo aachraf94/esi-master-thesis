@@ -1,9 +1,9 @@
 # Chapter 3 — Proposed Reference Framework and Analytical Evaluation — Writing Spec
 
-**Target length:** 15–18 pages. **Carries contribution C3. This is the chapter the jury weighs most.**
+**Target length:** 15–18 pages. **Carries construct C3. This is the chapter the jury weighs most.**
 
 ## Role
-This is the contribution chapter. In a theoretical thesis with no prototype, this chapter must deliver a **formal artifact** (not a block diagram + prose) and a **methodical evaluation** (not an opinion table). The two attack surfaces a jury will target are exactly these — close both here.
+This is the construct chapter. In a theoretical thesis with no prototype, this chapter must deliver a **formal artifact** (not a block diagram + prose) and a **methodical evaluation** (not an opinion table). The two attack surfaces a jury will target are exactly these — close both here.
 
 ## Section-by-section spec
 

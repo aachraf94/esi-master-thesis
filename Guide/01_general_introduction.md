@@ -3,7 +3,7 @@
 **Target length:** 3–4 pages. This sets up the entire defense; spend disproportionate care here despite the tight page budget.
 
 ## Role
-The introduction must convert a broad topic ("scalable DSIS") into a **defensible research problem** with explicit questions and claimed contributions. A jury decides in the first five minutes whether the thesis has a real problem. Do not open with generic "data is growing" platitudes.
+The introduction must convert a broad topic ("scalable DSIS") into a **defensible research problem** with explicit questions and claimed theoretical constructs. A jury decides in the first five minutes whether the thesis has a real problem. Do not open with generic "data is growing" platitudes.
 
 ## Required sections and what each must do
 
@@ -28,8 +28,8 @@ State **RQ1, RQ2, RQ3 verbatim** as in the master README. Keep the numbering sta
 ### 4. Objectives
 Map directly to the registered objectives (literature review; limitation analysis; reference framework; comparative study). Phrase each as a verb-led objective and tie it to an RQ.
 
-### 5. Contributions claimed (≈half page) — IMPORTANT
-State the three contributions up front (C1 dual-scalability conceptualization; C2 composability analysis + criteria instrument; C3 reference framework + analytical evaluation). Juries reward a thesis that *declares* its contributions early and then delivers exactly those.
+### 5. Theoretical Constructs (≈half page) — IMPORTANT
+State the three theoretical constructs up front (C1 dual-scalability conceptualization; C2 composability analysis + criteria instrument; C3 reference framework + analytical evaluation). Juries reward a thesis that *declares* its constructs early and then delivers exactly those.
 
 ### 6. Methodology of the thesis (≈half page)
 Name the method explicitly so the work reads as research, not opinion:
