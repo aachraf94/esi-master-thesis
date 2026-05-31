@@ -1,28 +1,25 @@
 \uchapter{Abstract}
 
-Classical Decision Support Information Systems (DSIS) rely on data warehouse architectures
-designed for stable business environments and fixed analytical needs. Faced with accelerating
-organizational transformations, the proliferation of heterogeneous data sources, and the
-growing analytical maturity of organizations, these rigid architectures become an obstacle
-to the evolution of decision support systems.
+Classical data warehouse architectures impose rigid structural and analytical constraints
+that limit the scalability of decision support information systems (DSIS): they cannot
+absorb schema changes and new source integrations without disruptive re-engineering, and
+they relegate predictive analytics to peripheral add-ons. Extending them incrementally
+reproduces the problem at larger scale.
 
-This research addresses the problem of scalability in decision-making architectures along
-two complementary axes: \textit{structural scalability}, which concerns the system's ability
-to integrate new sources, manage schema changes, and adapt to volume growth without
-disrupting the existing architecture; and \textit{analytical scalability}, which reflects
-the progression from purely descriptive BI toward predictive and prescriptive capabilities
-natively integrated into the decision pipeline.
-
-To address these challenges, this study relies on the Data Vault~2.0 methodology as the
-foundation of the agile modeling layer, and explores patterns for integrating advanced
-analytical models within modern architectures (Lakehouse, Delta Architecture). The thesis
-delivers three conceptual contributions: a formal dual-scalability framework (C1), a
-critical composability analysis of Data Vault~2.0 and the Lakehouse paradigm with a
-criteria instrument (C2), and a layered reference architecture with a formal integration
-contract evaluated against six criteria (C3).
+This thesis frames the core challenge as a \textit{dual-scalability deficit} —
+\textit{structural scalability} (absorbing schema evolution and source heterogeneity without
+re-engineering) and \textit{analytical scalability} (embedding predictive and prescriptive
+models natively in the decision pipeline) — and examines whether Data Vault~2.0 and the
+Lakehouse paradigm can be composed to close it. The central argument is that composition
+is achievable, but conditioned on an explicit integration contract that reconciles
+DV2.0's hash-keyed relational lineage discipline with the Lakehouse's schema-on-read file
+layer. Three conceptual contributions operationalize this finding: a formal dual-scalability
+framework (C1), a composability analysis of Data Vault~2.0 and the Lakehouse with a
+six-criteria evaluation instrument (C2), and a layered reference architecture with a formal
+integration contract evaluated against the criteria (C3).
 
 \bigskip
+\vspace{0.5cm}
 
-\noindent\textbf{Keywords:} Scalable architecture, Decision support information system,
-Data Vault~2.0, Agile data warehouse, Predictive analytics, Business Intelligence,
-Lakehouse, ETL/ELT, Schema evolution, Machine learning.
+\noindent\textbf{Keywords:} Data Vault~2.0, Lakehouse, Decision support system,
+Scalable architecture, Predictive analytics.
