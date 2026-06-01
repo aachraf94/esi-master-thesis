@@ -193,21 +193,42 @@ Prescriptive & What should be done? & Feedback loops, model governance, fresh da
 \label{tab:maturity-spectrum}
 \end{table}
 
-% VISUAL_MANUAL: Figure 1.x — Maturity staircase mapped to architectural demand
-% Tool: draw.io | Excalidraw
-% Description: A four-step rising staircase, left-to-right and bottom-to-top.
-%   Steps (in order): Descriptive, Diagnostic, Predictive, Prescriptive.
-%   Each step labeled with its question (what/why/what-will/what-should) on the tread,
-%   and its architectural requirement on the riser (DW+OLAP, DW+OLAP,
-%   ML platform+features, Closed-loop pipeline + governance).
-%   A dashed vertical line BETWEEN diagnostic and predictive, labeled
-%   "architecture must change here, not just the query".
-%   Shade the first two steps grey (served by classical DW), the last two
-%   blue/teal (need native analytical pipeline). A small downward bracket under
-%   Descriptive+Diagnostic labeled "where most organizations stall".
-% Priority: MEDIUM — reinforces the "steep, discontinuous jump" point the table only implies.
+\begin{figure}[H]
+\centering
+\resizebox{\linewidth}{!}{%
+\begin{tikzpicture}[
+  step/.style={draw, rounded corners=2pt, align=center, anchor=south west, font=\small},
+  classic/.style={step, fill=black!8, draw=black!45},
+  advanced/.style={step, draw=esiblue},
+  reqbox/.style={draw=black!30, fill=white, rounded corners=1pt, anchor=north, minimum width=3cm, minimum height=0.9cm, align=center, font=\footnotesize}
+]
+  % rising-demand axis
+  \draw[-{Latex}, black!55] (-0.7,0) -- (-0.7,6.1);
+  \node[rotate=90, anchor=south, font=\footnotesize, text=black!55] at (-1.05,3) {architectural demand};
+  % maturity columns (rising height = rising demand)
+  \node[classic,  minimum width=3cm, minimum height=1.4cm] at (0,0)    {\textbf{Descriptive}\\[2pt]\textit{\footnotesize what happened?}};
+  \node[classic,  minimum width=3cm, minimum height=2.8cm] at (3.4,0)  {\textbf{Diagnostic}\\[2pt]\textit{\footnotesize why?}};
+  \node[advanced, minimum width=3cm, minimum height=4.2cm, fill=esiblue!15] at (6.8,0)  {\textbf{Predictive}\\[2pt]\textit{\footnotesize what will happen?}};
+  \node[advanced, minimum width=3cm, minimum height=5.6cm, fill=esiblue!28] at (10.2,0) {\textbf{Prescriptive}\\[2pt]\textit{\footnotesize what to do?}};
+  % architectural requirement under each level
+  \node[reqbox] at (1.5,-0.15)  {DW + OLAP};
+  \node[reqbox] at (4.9,-0.15)  {DW + OLAP};
+  \node[reqbox] at (8.3,-0.15)  {ML platform\\+ feature pipelines};
+  \node[reqbox] at (11.7,-0.15) {Closed-loop\\+ governance};
+  % discontinuity: architecture changes between diagnostic and predictive
+  \draw[dashed, esiblue, thick] (6.6,-1.15) -- (6.6,6.1);
+  \node[anchor=south, font=\footnotesize\itshape, text=esiblue, align=center] at (6.6,6.15) {architecture must\\change here};
+  % "where most organizations stall" bracket under the first two levels
+  \draw[black!55] (0,-1.2) -- (0,-1.4) -- (6.4,-1.4) -- (6.4,-1.2);
+  \node[anchor=north, font=\footnotesize, text=black!70] at (3.2,-1.45) {where most organizations stall};
+  % maturity axis label
+  \node[font=\footnotesize, text=black!55] at (11.7,-1.95) {analytical maturity $\longrightarrow$};
+\end{tikzpicture}}
+\caption{Analytical maturity as rising architectural demand. The first two levels (grey) are served by the classical data warehouse; the predictive and prescriptive levels (blue) require a different pipeline shape. The dashed line marks where the architecture, not just the query, must change. \textit{Author-generated.}}
+\label{fig:maturity-staircase}
+\end{figure}
 
-\noindent The jump from diagnostic to predictive is where the architecture, not just the query, must change. Yet the empirical reality is that most organizations remain at the descriptive and diagnostic levels: industry surveys report that the large majority have not reached transformational analytics maturity \cite{gartner2018maturity} \textit{(industry practice; not peer-reviewed)}. A peer-reviewed review of maturity models adds the relevant caution \textemdash{} the consulting models in common use lack theoretical grounding, leaving maturity defined without a rigorous instrument \cite{dataanalyticsmaturity2024}. That absence is part of what the next section repairs.
+\noindent Figure~\ref{fig:maturity-staircase} renders this as a rising staircase: the jump from diagnostic to predictive is where the architecture, not just the query, must change. Yet the empirical reality is that most organizations remain at the descriptive and diagnostic levels: industry surveys report that the large majority have not reached transformational analytics maturity \cite{gartner2018maturity} \textit{(industry practice; not peer-reviewed)}. A peer-reviewed review of maturity models adds the relevant caution \textemdash{} the consulting models in common use lack theoretical grounding, leaving maturity defined without a rigorous instrument \cite{dataanalyticsmaturity2024}. That absence is part of what the next section repairs.
 
 The implication is structural, not incremental. Reaching the prescriptive level requires the decision pipeline to be designed for native analytical capability from the outset, not extended with downstream additions. This is the demand that the \textit{analytical scalability} axis \textemdash{} one half of the dual construct defined next \textemdash{} is built to measure.
 
@@ -294,20 +315,42 @@ The capacity of a DSIS to progress along the maturity spectrum \textemdash{} des
 
 \noindent Table~\ref{tab:c1-dual-scalability} presents the ten dimensions constituting C1; Chapters~2 and~3 evaluate existing approaches and the proposed framework against them.
 
-% VISUAL_MANUAL: Figure 1.2 — C1 Dual-Scalability Axes (conceptual diagram)
-% Tool: draw.io
-% Description: Two orthogonal arrows crossing at a labeled origin "C1: Dual-Scalability".
-%   Horizontal arrow (blue) = Structural scalability; 5 dimension nodes spaced along it:
-%     Source integration, Schema evolution, Volume/throughput, Historization, Change propagation.
-%   Vertical arrow (orange) = Analytical scalability; 5 dimension nodes spaced along it:
-%     Maturity reach, Native model integration, Data readiness, Workload plurality, Lifecycle support.
-%   Four quadrant labels (light grey text): top-right = "Target: fully scalable DSIS";
-%     top-left = "Analytically capable, structurally undisciplined (Data Lake)";
-%     bottom-right = "Structurally strong, analytically capped (Data Vault 2.0)";
-%     bottom-left = "Capped on both axes (Classical DW)".
-% Priority: HIGH — C1 is the chapter's contribution; makes "orthogonal" geometric, not just verbal.
+\begin{figure}[H]
+\centering
+\definecolor{axisanal}{RGB}{210,120,20}
+\resizebox{\linewidth}{!}{%
+\begin{tikzpicture}[
+  qbox/.style={rounded corners=3pt, align=center, font=\footnotesize, minimum width=3.8cm, minimum height=1.6cm, anchor=center},
+  tick/.style={font=\scriptsize, inner sep=1pt}
+]
+  % quadrant placement of the surveyed approaches
+  \node[qbox, fill=black!6,    draw=black!35]            at (-3.7,-2.7) {\textbf{Classical DW}\\capped on both axes};
+  \node[qbox, fill=tblstruct,  draw=esiblue!60]          at ( 3.7,-2.7) {\textbf{Data Vault 2.0}\\structurally strong,\\analytically capped};
+  \node[qbox, fill=tblanal,    draw=axisanal!70]         at (-3.7, 2.7) {\textbf{Data Lake}\\analytically capable,\\structurally undisciplined};
+  \node[qbox, fill=esiblue!18, draw=esiblue, very thick] at ( 3.7, 2.7) {\textbf{Target}\\fully scalable DSIS};
+  % axes
+  \draw[-{Latex}, esiblue,  thick] (-6.6,0) -- (6.8,0);
+  \draw[-{Latex}, axisanal, thick] (0,-4.5) -- (0,4.8);
+  \node[fill=white, draw=black!50, rounded corners=1pt, font=\scriptsize, inner sep=2pt] at (0,0) {C1};
+  % axis titles
+  \node[text=esiblue,  font=\small\bfseries, anchor=west]  at (6.9,0)  {Structural};
+  \node[text=axisanal, font=\small\bfseries, anchor=south] at (0,4.85) {Analytical};
+  % structural dimension ticks (positive x)
+  \foreach \x/\lab in {1.2/Src, 2.4/Sch, 3.6/Vol, 4.8/His, 6.0/Prp}{
+    \draw[esiblue] (\x,0.12) -- (\x,-0.12);
+    \node[tick, text=esiblue, anchor=north] at (\x,-0.16) {\lab};
+  }
+  % analytical dimension ticks (positive y)
+  \foreach \y/\lab in {0.9/Mat, 1.8/ML, 2.7/Rdy, 3.6/Wkl, 4.5/Lif}{
+    \draw[axisanal] (0.12,\y) -- (-0.12,\y);
+    \node[tick, text=axisanal, anchor=east] at (-0.16,\y) {\lab};
+  }
+\end{tikzpicture}}
+\caption{Construct C1 as two orthogonal axes. Structural scalability (horizontal) and analytical scalability (vertical) are independent: each surveyed approach sits in a different quadrant, and only the top-right region satisfies both. Tick abbreviations match Table~\ref{tab:c1-dual-scalability} (Src, Sch, Vol, His, Prp; Mat, ML, Rdy, Wkl, Lif). \textit{Author-generated.}}
+\label{fig:c1-axes}
+\end{figure}
 
-\noindent \textbf{The two axes are orthogonal.} A system can be:
+\noindent \textbf{The two axes are orthogonal} (Figure~\ref{fig:c1-axes}). A system can be:
 
 \begin{itemize}[noitemsep, topsep=4pt]
   \item \textbf{Structurally scalable yet analytically capped} \textemdash{} as classical Data Vault~2.0 is, absorbing schema change yet reaching no further than descriptive analysis.
