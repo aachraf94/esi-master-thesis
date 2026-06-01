@@ -14,6 +14,10 @@ This chapter moves from survey to critical analysis. It examines the two candida
 
 Data Vault~2.0 is the modeling discipline this thesis nominates for the structural axis of a dual-scalable DSIS \cite{linstedt2015}. Its central claim is that structural change can be made additive rather than destructive. This section examines the mechanics behind that claim, scores them against the C1 structural dimensions defined in Section~\ref{sec:ch1-scalability}, and states the drawbacks honestly, because those drawbacks set up the composability tension developed later in the chapter.
 
+\fig[\textwidth]{mainmatter/chapter2/figures/Data Vault 2.0 Architecture.png}{Data Vault~2.0 reference architecture. Source: \cite{linstedt2015}.}{ch2-dv2-architecture}
+
+Figure~\ref{fig:ch2-dv2-architecture} situates the modeling layer within the broader Data Vault~2.0 architecture, from staging through the raw and business vaults to the information delivery layer.
+
 \subsection{The Hub--Link--Satellite Decomposition}
 \label{subsec:ch2-hls}
 
@@ -143,10 +147,10 @@ Insert-only loading also confines the blast radius of change. A structural chang
 Four operating principles turn the topology into a loadable, scalable system.
 
 \begin{itemize}[noitemsep, topsep=4pt]
-  \item[\textit{Hash-key surrogates}] Business keys are hashed into fixed-length surrogate keys so that loads can compute keys independently and in parallel, without lookups against previously loaded data \cite{linstedt2015}. This decouples the loading of each object and lets ingestion scale horizontally.
-  \item[\textit{Insert-only loading}] Loads only append. The absence of updates and deletes removes lock contention, makes loads idempotent and restartable, and yields a complete audit trail by construction \cite{vassiliadis2009}.
-  \item[\textit{Raw Vault / Business Vault separation}] The raw layer stays free of business logic so it can serve as the auditable source-of-record; derived logic is quarantined in the Business Vault, so a change to a business rule never rewrites raw history \cite{varga2014}.
-  \item[\textit{Downstream consumption mart}] The vault is optimized for loading and historization, not for querying. A dimensional mart materializes the user-facing layer, accepting query-time cost in exchange for load-time agility \cite{kimball2013}.
+  \item \textbf{Hash-key surrogates} — Business keys are hashed into fixed-length surrogate keys so that loads can compute keys independently and in parallel, without lookups against previously loaded data \cite{linstedt2015}. This decouples the loading of each object and lets ingestion scale horizontally.
+  \item \textbf{Insert-only loading} — Loads only append. The absence of updates and deletes removes lock contention, makes loads idempotent and restartable, and yields a complete audit trail by construction \cite{vassiliadis2009}.
+  \item \textbf{Raw Vault / Business Vault separation} — The raw layer stays free of business logic so it can serve as the auditable source-of-record; derived logic is quarantined in the Business Vault, so a change to a business rule never rewrites raw history \cite{varga2014}.
+  \item \textbf{Downstream consumption mart} — The vault is optimized for loading and historization, not for querying. A dimensional mart materializes the user-facing layer, accepting query-time cost in exchange for load-time agility \cite{kimball2013}.
 \end{itemize}
 
 \subsection{DV2.0 Assessed Against Structural Scalability}
@@ -203,7 +207,154 @@ The standard is also a living one. Recent enhancements relax some of these costs
 
 \section{Analytical Integration Patterns}
 \label{sec:ch2-analytics}
-\todo{Write.}
+
+Section~\ref{sec:ch2-dv2} assessed Data Vault~2.0 on the structural axis. This section turns to the analytical axis and examines how a modern Lakehouse pipeline integrates predictive capability \cite{armbrust2021}. Three patterns define that integration: the order in which data is transformed, the way models are embedded in the pipeline, and the mechanisms that keep data fresh. Each is mapped onto the C1 analytical-scalability dimensions, and the limits are kept in view for the composability analysis that follows.
+
+\subsection{From ETL to ELT}
+\label{subsec:ch2-elt}
+
+The first pattern is a reordering of the pipeline. The classical warehouse transforms data \emph{before} loading it (ETL), because storage was expensive and the target schema was fixed in advance \cite{vassiliadis2009}. The Lakehouse inverts this: it loads raw data first and transforms it \emph{in place} (ELT), because object storage is cheap and compute can be pushed down to the data \cite{harby2024}.
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.35}
+\rowcolors{2}{white}{tblrowalt}
+\begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{3.0cm}|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
+\hline
+\rowcolor{tblheader}
+\textcolor{white}{\textbf{Aspect}} &
+\textcolor{white}{\textbf{ETL (classical DW)}} &
+\textcolor{white}{\textbf{ELT (Lakehouse)}} \\
+\hline
+Transform location & Separate staging engine, before load & In-platform, after load (pushdown compute) \\
+\hline
+Storage assumption & Expensive; schema-on-write & Cheap object store; schema-flexible \\
+\hline
+Raw data & Discarded after transformation & Retained in the Bronze layer \\
+\hline
+Schema timing & Fixed before ingestion & Applied progressively (Silver, Gold) \\
+\hline
+Structural agility & Low; a new field needs pipeline rework & High; land first, transform later \\
+\hline
+\end{tabularx}
+\caption{ETL versus ELT in the modern data pipeline. \textit{Author-generated.}}
+\label{tab:etl-vs-elt}
+\end{table}
+
+ELT is what makes the medallion layering of Chapter~1 possible: raw data lands in Bronze, is refined into Silver, and is served from Gold, all within one governed store \cite{databricks2022} \textit{(industry practice; not peer-reviewed)}. Transformation becomes incremental rather than a precondition for ingestion.
+
+\subsection{Native Predictive Integration}
+\label{subsec:ch2-native-ml}
+
+The second pattern concerns where predictive models live. The decisive question for analytical scalability is whether models are first-class citizens of the pipeline or external appendages \cite{armbrust2021}.
+
+\begin{itemize}[noitemsep, topsep=4pt]
+  \item \textbf{Downstream bolt-on} — Data is exported to a separate machine-learning system. Governance and lineage are lost at the boundary, and the copy used for training drifts from the data used for reporting.
+  \item \textbf{Native integration} — Training, serving, and monitoring run on the same governed store. One copy of the data feeds both business intelligence and machine learning, and lineage is preserved end to end.
+\end{itemize}
+
+Native integration assembles the model lifecycle into a closed loop on a single platform \cite{kreuzberger2023}. Figure~\ref{fig:native-ml-loop} shows the arrangement.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    >=stealth, font=\small, scale=0.85, transform shape,
+    stage/.style={rectangle, rounded corners=3pt, draw=black, align=center,
+                  text=white, minimum width=2.3cm, minimum height=1.05cm, inner sep=3pt},
+    flow/.style={->, thick},
+    loop/.style={->, thick, dashed}
+  ]
+  \definecolor{stStore}{RGB}{70,130,180}
+  \definecolor{stFeat}{RGB}{38,166,154}
+  \definecolor{stTrain}{RGB}{255,167,38}
+  \definecolor{stServe}{RGB}{102,187,106}
+  \definecolor{stMon}{RGB}{120,144,156}
+
+  \node[stage, fill=stStore] (store) {Governed\\Store};
+  \node[stage, fill=stFeat, right=0.85cm of store] (feat) {Feature\\Store};
+  \node[stage, fill=stTrain, right=0.85cm of feat] (train) {Model\\Training};
+  \node[stage, fill=stServe, right=0.85cm of train] (serve) {Serving /\\Inference};
+  \node[stage, fill=stMon, right=0.85cm of serve] (mon) {Monitoring};
+
+  \draw[flow] (store) -- (feat);
+  \draw[flow] (feat) -- (train);
+  \draw[flow] (train) -- (serve);
+  \draw[flow] (serve) -- (mon);
+
+  \draw[loop] (mon.south) to[out=-90, in=-90]
+        node[below, font=\footnotesize] {retraining trigger} (train.south);
+  \draw[loop] (serve.north) to[out=90, in=90]
+        node[above, font=\footnotesize] {outcomes + feedback} (store.north);
+\end{tikzpicture}
+\caption{Native predictive pipeline on the Lakehouse. \textit{Author-generated.}}
+\label{fig:native-ml-loop}
+\end{figure}
+
+The loop has four working parts \cite{kreuzberger2023}:
+
+\begin{itemize}[noitemsep, topsep=4pt]
+  \item \textbf{Feature store} — Curates and serves features consistently to both training and inference, removing training–serving skew.
+  \item \textbf{Model training} — Runs on the same governed data, so models train on the trusted production record rather than a stale export.
+  \item \textbf{Serving / inference} — Scores new data and writes predictions back to the store, keeping results inside the governed lineage.
+  \item \textbf{Feedback and retraining} — Monitoring detects drift and triggers retraining, closing the loop required for prescriptive analytics \cite{feedback2025}.
+\end{itemize}
+
+This native arrangement is what lets a Lakehouse reach the predictive and prescriptive levels of the maturity spectrum without a downstream bolt-on \cite{futurei2025}.
+
+\subsection{Streaming and Incremental Analytics}
+\label{subsec:ch2-streaming}
+
+The third pattern keeps the pipeline fresh. Prescriptive decisions need data recent enough to act on, which shifts ingestion and scoring from periodic batches toward continuous flow.
+
+\begin{itemize}[noitemsep, topsep=4pt]
+  \item \textbf{Change data capture (CDC)} — Streams row-level changes from source systems as they happen, rather than reloading whole tables \cite{kleppmann2017}.
+  \item \textbf{Continuous ingestion} — A single replayable stream feeds both real-time and historical processing, the Kappa pattern \cite{kreps2014} \textit{(industry practice; not peer-reviewed)}.
+  \item \textbf{Near-real-time scoring} — Models score incoming records on arrival, so predictions track the current state of the business.
+  \item \textbf{Online learning over drift} — Where distributions shift, models update incrementally on the stream rather than waiting for a full retrain \cite{bifet2018}.
+\end{itemize}
+
+\subsection{Analytical Integration Assessed Against Analytical Scalability}
+\label{subsec:ch2-analytics-assessment}
+
+Mapped onto the five C1 analytical dimensions, the Lakehouse analytics stack scores strongly on four and partially on one. Table~\ref{tab:analytics-assessment} records the assessment. The single partial score, data readiness, is the pivot of this chapter: the stack delivers freshness natively, but the \emph{trustworthiness} of the data it serves depends on a modeling discipline the Lakehouse does not itself supply.
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.35}
+\rowcolors{2}{white}{tblrowalt}
+\begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{3.8cm}|>{\raggedright\arraybackslash}p{2.0cm}|>{\raggedright\arraybackslash}X|}
+\hline
+\rowcolor{tblheader}
+\textcolor{white}{\textbf{C1 Dimension}} &
+\textcolor{white}{\textbf{Lakehouse Score}} &
+\textcolor{white}{\textbf{Evidence}} \\
+\hline
+Maturity reach &
+\textbf{Strong} &
+Supports descriptive through prescriptive analytics on one platform. \\
+\hline
+Native model integration &
+\textbf{Strong} &
+Training, serving, and monitoring run on the governed store as first-class citizens. \\
+\hline
+Data readiness &
+\textbf{Partial} &
+Freshness is native via streaming, but data trust and feature quality depend on upstream modeling discipline. \\
+\hline
+Workload plurality &
+\textbf{Strong} &
+Business intelligence and machine learning are served from the same governed layer. \\
+\hline
+Lifecycle support &
+\textbf{Strong} &
+Feature stores, monitoring, and retraining provide a closed model lifecycle. \\
+\hline
+\end{tabularx}
+\caption{The Lakehouse analytics stack assessed against C1 analytical-scalability dimensions. Scores are author assessments. \textit{Author-generated.}}
+\label{tab:analytics-assessment}
+\end{table}
+
+The two assessments now sit side by side. Data Vault~2.0 is structurally strong but analytically capped; the Lakehouse analytics stack is analytically strong but assumes the disciplined, trustworthy data it does not produce. The partial scores of each are the strengths of the other. Whether the two actually compose into one architecture is the question of Section~\ref{sec:ch2-tension}.
 
 \section{The Core Tension: Composing DV2.0 with the Lakehouse}
 \label{sec:ch2-tension}

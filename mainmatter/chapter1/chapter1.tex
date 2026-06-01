@@ -151,11 +151,11 @@ This thesis defines \textit{scalability in DSIS} as the capacity of the system t
 Structural scalability is the capacity of a DSIS to evolve its data structure and integration footprint without disruptive re-engineering of the existing architecture. Without it, every new source or schema change forces a partial rebuild. Five dimensions characterize it:
 
 \begin{itemize}[noitemsep, topsep=4pt]
-  \item[\textit{Source integration}] the cost of absorbing a new heterogeneous data source, measured in effort, schema impact, and pipeline disruption.
-  \item[\textit{Schema evolution}] the cost and blast radius of structural changes such as column renames, entity splits, and type changes, and the degree to which those changes are non-destructive and version-aware.
-  \item[\textit{Volume and throughput growth}] the capacity to scale data volume and ingestion load without architectural redesign.
-  \item[\textit{Historization and auditability}] the completeness and non-destructiveness of the historical record and the ability to audit changes over time.
-  \item[\textit{Loosely-coupled change propagation}] the degree to which a structural change in one source or layer is isolated from downstream consumers.
+  \item \textbf{Source integration} the cost of absorbing a new heterogeneous data source, measured in effort, schema impact, and pipeline disruption.
+  \item \textbf{Schema evolution} the cost and blast radius of structural changes such as column renames, entity splits, and type changes, and the degree to which those changes are non-destructive and version-aware.
+  \item \textbf{Volume and throughput growth} the capacity to scale data volume and ingestion load without architectural redesign.
+  \item \textbf{Historization and auditability} the completeness and non-destructiveness of the historical record and the ability to audit changes over time.
+  \item \textbf{Loosely-coupled change propagation} the degree to which a structural change in one source or layer is isolated from downstream consumers.
 \end{itemize}
 
 \noindent Together these five dimensions make structural scalability an assessable property rather than a slogan.
@@ -166,11 +166,11 @@ Structural scalability is the capacity of a DSIS to evolve its data structure an
 Analytical scalability is the capacity of a DSIS to progress along the analytical maturity spectrum, from descriptive toward prescriptive, with advanced capability integrated natively in the decision pipeline rather than bolted on downstream. Without it, predictive and prescriptive capability can only be grafted externally, outside the governed pipeline. Five dimensions characterize it:
 
 \begin{itemize}[noitemsep, topsep=4pt]
-  \item[\textit{Maturity reach}] the highest maturity level the architecture supports natively, from descriptive through prescriptive.
-  \item[\textit{Native model integration}] the degree to which machine learning and predictive models are first-class citizens of the pipeline rather than external appendages.
-  \item[\textit{Data readiness for analytics}] the freshness, trust, and feature availability of data at the point of analytical consumption.
-  \item[\textit{Workload plurality}] the capacity to serve business-intelligence and machine-learning workloads from the same governed data layer without duplication.
-  \item[\textit{Lifecycle support}] the support for model retraining, feedback loops, and model governance within the pipeline.
+  \item \textbf{Maturity reach} the highest maturity level the architecture supports natively, from descriptive through prescriptive.
+  \item \textbf{Native model integration} the degree to which machine learning and predictive models are first-class citizens of the pipeline rather than external appendages.
+  \item \textbf{Data readiness for analytics} the freshness, trust, and feature availability of data at the point of analytical consumption.
+  \item \textbf{Workload plurality} the capacity to serve business-intelligence and machine-learning workloads from the same governed data layer without duplication.
+  \item \textbf{Lifecycle support} the support for model retraining, feedback loops, and model governance within the pipeline.
 \end{itemize}
 
 \noindent These five dimensions make analytical scalability assessable on the same footing as its structural counterpart.
