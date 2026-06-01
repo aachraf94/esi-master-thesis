@@ -3,21 +3,97 @@
 
 \section*{Recall of the Problem and Approach}
 \addcontentsline{toc}{section}{Recall of the Problem and Approach}
-\todo{Write.}
+
+Classical decision support architectures force two premature commitments: a fixed
+structural schema, expensive to revise once ingestion begins, and a fixed analytical scope,
+typically descriptive reporting that cannot be extended toward prediction without grafting
+external systems onto the pipeline. The literature treats these as separate problems ---
+structural agility through Data Vault~2.0, analytical integration through the Lakehouse ---
+and never frames both as dimensions of one property. This thesis treated them as a single
+problem of \textit{dual scalability} and proceeded in three steps that map to its three
+chapters: conceptualize the property (C1, Chapter~1), analyze whether the two leading
+paradigms compose (C2, Chapter~2), and construct and evaluate a reference framework that
+unifies them (C3, Chapter~3).
 
 \section*{Constructs Against the Research Questions}
 \addcontentsline{toc}{section}{Constructs Against the Research Questions}
 
-\noindent\textbf{RQ1:} \todo{Write.}
+\noindent\textbf{RQ1 --- structural.} \textit{How can a DSIS architecture absorb new
+sources, schema changes, and volume growth without disruptive re-engineering?} It does so
+when structural change is made additive rather than destructive. Construct~C1 defined
+structural scalability through five dimensions; the framework's agile modeling layer
+(\S\ref{sec:ch3-framework}) discharges them with the Data Vault~2.0 Hub--Link--Satellite
+decomposition on an open table format, where a new source is absorbed by adding objects,
+not by restructuring existing ones (requirements R1--R5). Invariants~I3 and~I4 make this
+binding: schema changes are additive and business keys are stable, so growth in sources,
+structure, and volume does not propagate as a rebuild.
 
-\noindent\textbf{RQ2:} \todo{Write.}
+\noindent\textbf{RQ2 --- analytical.} \textit{How can predictive/prescriptive capability be
+integrated natively into the decision pipeline rather than bolted on downstream?} By
+positioning the analytics layer to read from the modeling layer directly. Construct~C1
+defined analytical scalability through five dimensions; the framework's native analytics
+layer (\S\ref{sec:ch3-framework}) satisfies them by consuming historized, business-keyed,
+feature-ready entities across the integration contract (clauses~G1 and~G4), so models are
+first-class pipeline citizens rather than external appendages (requirements R6--R9). The
+read-path that bypasses the serving marts is the structural expression of this answer.
 
-\noindent\textbf{RQ3:} \todo{Write.}
+\noindent\textbf{RQ3 --- composability.} \textit{Under what conditions can an agile
+relational-lineage modeling discipline (Data Vault~2.0) and a file-based Lakehouse paradigm
+be composed into a single coherent architecture, and what are the trade-offs?} Chapter~2
+(\S\ref{sec:ch2-tension}) established that the two are combined in practice but their
+interface is specified by neither paradigm. Chapter~3 specified it as the integration
+contract (clauses~G1--G6), with a single open table format mediating relational-lineage
+discipline and machine-learning file access on one physical copy (invariant~I7). The answer
+separates what was \textit{resolved} from what was \textit{scoped}. Resolved: the interface
+is specifiable, and the overlap between Satellite historization and table-version time
+travel is settled by making \texttt{load\_dts} the system of record (assumption~A3). Scoped:
+the join-heavy query cost is confined to the serving and feature layers, not eliminated
+(assumption~A2); the composability claim rests partly on industry evidence; and the
+architecture is justified only where source heterogeneity and analytical ambition are both
+high (\S\ref{sec:ch3-discussion}). The trade-off is therefore explicit: structural agility,
+native analytics, and clean composability are bought at the cost of implementation
+complexity and a query-performance ceiling below a dimensional warehouse's.
 
 \section*{Limitations}
 \addcontentsline{toc}{section}{Limitations}
-\todo{Write.}
+
+The contribution is conceptual, and its limits are stated plainly rather than concealed.
+
+\begin{itemize}[noitemsep, topsep=4pt]
+  \item \textbf{Conceptual, not empirical.} The framework is evaluated by criteria-based
+  comparison, not measurement. Its ratings predict relative standing; they are not
+  benchmarks.
+  \item \textbf{Thin composability evidence.} The central RQ3 claim leans on vendor practice
+  and a small peer-reviewed base, because the Data Vault~2.0--Lakehouse composition is not
+  yet studied formally in the literature.
+  \item \textbf{Reference model, not a system.} The framework specifies layers, a contract,
+  and invariants; it deliberately leaves engine choice, serving latency, and tooling open
+  (assumption~A4). It is a blueprint to instantiate, not a deployed system.
+  \item \textbf{Reasoned, not measured, performance.} The query-performance ceiling and the
+  cost of the serving layer are argued from the paradigms' mechanics, not from
+  measurement.
+\end{itemize}
 
 \section*{Future Work}
 \addcontentsline{toc}{section}{Future Work}
-\todo{Write.}
+
+Each limitation points to concrete work that would extend the thesis.
+
+\begin{itemize}[noitemsep, topsep=4pt]
+  \item \textbf{Prototype and benchmark.} Instantiate the framework with Data Vault~2.0 on
+  Delta or Iceberg and benchmark it across the six C2 criteria, turning the conceptual
+  ratings into measured ones.
+  \item \textbf{Case study at OURQUILANE.} Instantiate the framework on a real logistics and
+  decision-support context, the natural bridge from this theoretical thesis to applied work.
+  \item \textbf{Quantify the composability trade-off.} Study the Data Vault~2.0--Lakehouse
+  query-performance cost empirically, closing the measurement gap identified in
+  \S\ref{sec:ch2-tension}.
+  \item \textbf{Extend the analytics layer.} Carry the native analytics layer from
+  predictive toward prescriptive and optimization workloads, with feedback-driven
+  retraining inside the governed pipeline (requirement~R9).
+\end{itemize}
+
+The thesis set out to treat structural and analytical scalability as one property and to
+show that the two leading paradigms can be composed to serve it. Construct~C3 is that
+composition, specified and evaluated; the work above is the path from a defensible blueprint
+to a measured system.

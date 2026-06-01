@@ -7,21 +7,124 @@
 \section*{Introduction}
 \addcontentsline{toc}{section}{Introduction}
 
-\todo{Write chapter introduction. Signal what the jury will find: (1)~a formal artifact
-with named layers, component definitions, and an integration contract — not a block
-diagram with no specification; (2)~a methodical, criteria-based evaluation — not a bare
-opinion table. Both attack surfaces are closed in this chapter.}
+Chapter~2 closed on a sharpened question rather than an answer. Its composability analysis (\S\ref{sec:ch2-tension}) showed that Data Vault~2.0 and the Lakehouse do combine in current practice, but that the combination rests on an interface neither paradigm specifies: the modeling discipline assumes relational lineage and hash-keyed history, while the analytics stack assumes file access and schema-on-read. The chapter also produced the instrument needed to judge any proposed resolution --- the six-criteria evaluation grid (\S\ref{sec:ch2-criteria}). This chapter uses both outputs: it builds an architecture that names and governs that interface, then evaluates it with the grid.
+
+This is the construct chapter, and it carries C3. A theoretical thesis is most exposed here, because a jury can attack a proposed architecture on two fronts. The first is specification: a block diagram with boxes and arrows but no component definitions and no stated contract is a picture, not an artifact. The second is evaluation: a comparison table with scores but no stated method reads as opinion, not assessment. This chapter is organized to close both fronts deliberately.
+
+It closes the first front by presenting the framework as a formal artifact. Section~\ref{sec:ch3-requirements} derives the requirements from RQ1--RQ3 and the dual-scalability dimensions of \S\ref{sec:ch1-scalability}, so that every design choice traces to a stated need. Section~\ref{sec:ch3-framework} then specifies a layered reference model with named components and their responsibilities, an explicit integration contract between the agile modeling layer and the native analytics layer (\S\ref{subsec:ch3-contract}), and a set of numbered design invariants (\S\ref{subsec:ch3-invariants}) that can be probed one by one. The contract is the centerpiece: it states what the modeling layer guarantees to the analytics layer, and it scopes explicitly what it does not solve.
+
+It closes the second front by stating the evaluation method before applying it. Section~\ref{sec:ch3-methodology} defines the assessment as conceptual and criteria-based, explicitly non-empirical, with a scoring rubric and an evidence rule that admits no bare scores. Section~\ref{sec:ch3-comparison} then applies that method across Kimball, Inmon, Data Vault~2.0, and the proposed framework, conceding where the framework inherits Data Vault~2.0's complexity cost rather than claiming it wins everywhere. Section~\ref{sec:ch3-discussion} examines the trade-offs, the conditions under which the architecture earns its complexity, and the limits of a validation that remains conceptual.
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Requirements and Design Rationale}
 \label{sec:ch3-requirements}
 
-\todo{Derive requirements directly and traceably from RQ1--RQ3 and the ten
-dual-scalability dimensions from \S\ref{sec:ch1-scalability}. Present as a requirements
-table: each requirement → the RQ it addresses → the scalability dimension it serves.
-This traceability is what makes the framework look engineered rather than invented.}
+The framework is not designed freely. Its requirements are derived from the research
+questions of the introduction and the ten dual-scalability dimensions formalized as
+construct~C1 (\S\ref{sec:ch1-scalability}), so that every later design decision answers a
+stated need rather than a preference. This section makes that derivation explicit before
+any architecture is drawn. Figure~\ref{fig:ch3-traceability} shows the derivation path,
+and Table~\ref{tab:ch3-requirements} states each requirement with the question it answers
+and the dimension it serves.
 
-% Visual: requirements × RQ × dimension traceability table.
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    >=stealth, font=\small,
+    rq/.style={rectangle, rounded corners=3pt, draw=black, text=white, align=center,
+               minimum width=2.4cm, minimum height=1.0cm, inner sep=3pt, font=\footnotesize},
+    grp/.style={rectangle, draw=black, align=center,
+                minimum width=3.4cm, minimum height=1.1cm, inner sep=4pt, font=\footnotesize},
+    ax/.style={rectangle, rounded corners=3pt, draw=black, align=center,
+               minimum width=3.0cm, minimum height=1.1cm, inner sep=4pt, font=\footnotesize},
+    flow/.style={->, thick}
+  ]
+  \definecolor{rqStruct}{RGB}{70,130,180}
+  \definecolor{rqAnal}{RGB}{102,187,106}
+  \definecolor{rqComp}{RGB}{255,167,38}
+  \definecolor{tintStruct}{RGB}{225,238,247}
+  \definecolor{tintAnal}{RGB}{229,245,231}
+  \definecolor{tintComp}{RGB}{255,243,224}
+
+  % ── RQ sources (left) ──
+  \node[rq, fill=rqStruct] (rq1) at (0, 2.1)  {\textbf{RQ1}\\structural};
+  \node[rq, fill=rqAnal]   (rq2) at (0, 0)    {\textbf{RQ2}\\analytical};
+  \node[rq, fill=rqComp]   (rq3) at (0,-2.1)  {\textbf{RQ3}\\composability};
+
+  % ── requirement groups (middle) ──
+  \node[grp, fill=tintStruct] (g1) at (5, 2.1)  {Structural\\requirements\\\textbf{R1--R5}};
+  \node[grp, fill=tintAnal]   (g2) at (5, 0)    {Analytical\\requirements\\\textbf{R6--R9}};
+  \node[grp, fill=tintComp]   (g3) at (5,-2.1)  {Composability \&\\governance\\\textbf{R10--R12}};
+
+  % ── C1 axes (right) ──
+  \node[ax, fill=tintStruct] (a1) at (10, 1.2)  {Structural\\scalability\\\footnotesize(5 dimensions)};
+  \node[ax, fill=tintAnal]   (a2) at (10,-1.2)  {Analytical\\scalability\\\footnotesize(5 dimensions)};
+
+  % ── arrows: RQ -> group -> axis ──
+  \draw[flow, rqStruct] (rq1.east) -- (g1.west);
+  \draw[flow, rqAnal]   (rq2.east) -- (g2.west);
+  \draw[flow, rqComp]   (rq3.east) -- (g3.west);
+
+  \draw[flow, rqStruct] (g1.east) -- (a1.west);
+  \draw[flow, rqAnal]   (g2.east) -- (a2.west);
+  \draw[flow, rqComp]   (g3.east) -- (a1.west);
+  \draw[flow, rqComp]   (g3.east) -- (a2.west);
+\end{tikzpicture}
+\caption{Requirements derivation. Each research question forces a block of requirements,
+which in turn serve the C1 scalability dimensions. RQ3 is the only question that binds
+both axes --- the composability requirements (R10--R12) are what couple structure to
+analytics. \textit{Author-generated.}}
+\label{fig:ch3-traceability}
+\end{figure}
+
+Figure~\ref{fig:ch3-traceability} carries the central design claim of the chapter: the
+structural and analytical requirement blocks satisfy their respective axes in isolation,
+but RQ3 is discharged only by the cross-cutting requirements R10--R12, which is precisely
+the composability tension of \S\ref{sec:ch2-tension} restated as a design obligation.
+
+\definecolor{tblcomp}{RGB}{255,243,224}
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\linewidth}{|c|>{\raggedright\arraybackslash}X|c|>{\raggedright\arraybackslash}p{3.5cm}|}
+\hline
+\rowcolor{tblheader}
+\textcolor{white}{\textbf{ID}} &
+\textcolor{white}{\textbf{Requirement}} &
+\textcolor{white}{\textbf{RQ}} &
+\textcolor{white}{\textbf{C1 dimension served}} \\
+\hline
+\rowcolor{tblstruct} R1 & Source onboarding is non-destructive: a new heterogeneous source is absorbed by adding objects, never by restructuring existing ones \cite{linstedt2015}. & RQ1 & Source integration \\
+\rowcolor{tblstruct} R2 & Schema evolution is additive and version-aware: structural change creates new structures rather than mutating in place \cite{kleppmann2017}. & RQ1 & Schema evolution \\
+\rowcolor{tblstruct} R3 & Data volume and ingestion load scale without architectural redesign \cite{deltalake2020}. & RQ1 & Volume / throughput \\
+\rowcolor{tblstruct} R4 & Every entity retains a complete, non-destructive, auditable history \cite{linstedt2015}. & RQ1 & Historization \\
+\rowcolor{tblstruct} R5 & A structural change in one source or layer is isolated from downstream consumers \cite{linstedt2015}. & RQ1 & Change propagation \\
+\hline
+\rowcolor{tblanal} R6 & Predictive and prescriptive models are first-class citizens of the pipeline, not downstream bolt-ons \cite{armbrust2021}. & RQ2 & Maturity reach; Native model integration \\
+\rowcolor{tblanal} R7 & The analytical consumption point exposes fresh, trusted, feature-ready data \cite{kreuzberger2023}. & RQ2 & Data readiness \\
+\rowcolor{tblanal} R8 & Business-intelligence and machine-learning workloads are served from one governed layer without duplication \cite{schneider2024}. & RQ2 & Workload plurality \\
+\rowcolor{tblanal} R9 & Model retraining, feedback loops, and model governance occur inside the pipeline \cite{kreuzberger2023}. & RQ2 & Lifecycle support \\
+\hline
+\rowcolor{tblcomp} R10 & The modeling and analytics layers interface through an explicit integration contract over historized, business-keyed, lineage-stamped entities \cite{jones2023datacontracts}. & RQ3 & Source integration $\leftrightarrow$ Native model integration \\
+\rowcolor{tblcomp} R11 & A single open table format mediates relational-lineage discipline and machine-learning file access \cite{deltalake2020, databricks2022}. & RQ3 & Schema evolution; Workload plurality \\
+\rowcolor{tblcomp} R12 & Lineage and governance span all layers end to end \cite{giebler2019dv}. & RQ1--RQ3 & Historization; Data readiness \\
+\hline
+\end{tabularx}
+\caption{Requirements traceability: each requirement maps to the research question that
+forces it and the C1 scalability dimension it serves. Blocks are color-coded by axis ---
+structural (blue), analytical (green), composability and governance (orange).
+\textit{Author-generated.}}
+\label{tab:ch3-requirements}
+\end{table}
+
+Two properties of Table~\ref{tab:ch3-requirements} matter for what follows. First, the
+twelve requirements cover all ten C1 dimensions, so the framework is answerable against
+the same instrument used to expose the gap in Chapter~1. Second, the structural block
+(R1--R5) and the analytical block (R6--R9) describe capabilities that Data Vault~2.0 and
+the Lakehouse already provide individually, as Chapter~2 established; the design work is
+concentrated in R10--R12, the requirements no single paradigm satisfies alone. These three
+are the obligations the integration contract and governance plane of
+\S\ref{sec:ch3-framework} must discharge.
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{The Reference Framework}
@@ -34,101 +137,597 @@ This traceability is what makes the framework look engineered rather than invent
 \subsection{Layered Reference Model}
 \label{subsec:ch3-layers}
 
-\todo{Define five named layers with their responsibilities:
-\begin{enumerate}
-    \item \textit{Ingestion \& staging layer} — heterogeneous sources, CDC, lake landing.
-    \item \textit{Agile modeling layer} — DV2.0 Raw Vault + Business Vault on an open
-    table format (Delta/Iceberg).
-    \item \textit{Consumption/serving layer} — dimensional marts and serving views for BI.
-    \item \textit{Native analytics layer} — feature pipelines, model training/serving,
-    feedback loops; positioned to read from the modeling layer, not bolted past the marts.
-    \item \textit{Governance \& metadata plane} — cross-cutting: lineage, schema registry,
-    data catalog.
-\end{enumerate}}
+The framework is organized as four stacked functional layers resting on a shared storage
+substrate and wrapped by one cross-cutting governance plane. The ordering follows the data
+path: heterogeneous sources are captured at the bottom, integrated and historized in the
+middle, and consumed at the top by two parallel paths --- business intelligence and native
+analytics. The single design decision that distinguishes this arrangement from a
+conventional warehouse is the placement of the analytics layer: it reads from the agile
+modeling layer directly, not from the serving marts downstream of it. Figure~\ref{fig:ch3-architecture}
+shows the model.
 
-% Visual: layered reference architecture diagram with the governance plane cross-cutting.
+\begin{figure}[H]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[
+    >=stealth, font=\footnotesize,
+    layer/.style={rectangle, rounded corners=2pt, draw=black, align=center,
+                  minimum height=1.05cm, inner sep=4pt},
+    src/.style={rectangle, rounded corners=2pt, draw=black, fill=gray!12, align=center,
+                minimum width=2.6cm, minimum height=0.85cm, inner sep=3pt},
+    cons/.style={rectangle, rounded corners=2pt, draw=black, fill=white, align=center,
+                 minimum width=4.2cm, minimum height=0.9cm, inner sep=3pt},
+    plane/.style={rectangle, rounded corners=2pt, draw=black, align=center, inner sep=3pt},
+    flow/.style={->, thick, >=stealth},
+    lbl/.style={font=\scriptsize\itshape}
+  ]
+  \definecolor{lyIngest}{RGB}{225,238,247}
+  \definecolor{lyModel}{RGB}{255,243,224}
+  \definecolor{lyServe}{RGB}{234,249,244}
+  \definecolor{lyAnal}{RGB}{229,245,231}
+  \definecolor{lyGov}{RGB}{238,232,247}
+  \definecolor{lyFmt}{RGB}{232,240,252}
+
+  % ── sources (bottom) ──
+  \node[src] (s1) at (3.7,-0.7) {OLTP\\systems};
+  \node[src] (s2) at (7.0,-0.7) {Streaming,\\CDC feeds};
+  \node[src] (s3) at (10.3,-0.7) {Files,\\SaaS APIs};
+
+  % ── L1 ingestion ──
+  \node[layer, fill=lyIngest, minimum width=9.2cm] (l1) at (7.0,1.0)
+     {\textbf{1.\ Ingestion \& Staging Layer}\\ lake landing, CDC capture (Bronze zone)};
+
+  % ── L2 modeling ──
+  \node[layer, fill=lyModel, minimum width=9.2cm] (l2) at (7.0,3.0)
+     {\textbf{2.\ Agile Modeling Layer (Silver)}\\ Raw Vault: Hubs, Links, Satellites \quad\textbar\quad Business Vault: PIT, Bridge, derived rules};
+
+  % ── L3 serving / L4 analytics ──
+  \node[layer, fill=lyServe, minimum width=4.3cm, minimum height=1.3cm] (l3) at (4.55,5.2)
+     {\textbf{3.\ Consumption /}\\\textbf{Serving (Gold)}\\ dimensional marts,\\ serving views};
+  \node[layer, fill=lyAnal, minimum width=4.3cm, minimum height=1.3cm] (l4) at (9.45,5.2)
+     {\textbf{4.\ Native Analytics}\\ feature pipelines, model\\ training, serving, feedback};
+
+  % ── consumers (top) ──
+  \node[cons] (bi) at (4.55,7.1) {BI \& reporting\\(descriptive, diagnostic)};
+  \node[cons] (ml) at (9.45,7.1) {Predictive \& prescriptive\\decision support};
+
+  % ── cross-cutting planes ──
+  \node[plane, fill=lyFmt, minimum width=1.7cm, minimum height=6.0cm] (fmt) at (0.9,2.6)
+     {\rotatebox{90}{\parbox{5.6cm}{\centering\textbf{Open Table Format}\\(Delta / Iceberg)\\ \scriptsize ACID, time travel, schema evolution}}};
+  \node[plane, fill=lyGov, minimum width=1.7cm, minimum height=6.0cm] (gov) at (13.1,2.6)
+     {\rotatebox{90}{\parbox{5.6cm}{\centering\textbf{5.\ Governance \&}\\\textbf{Metadata Plane}\\ \scriptsize lineage, schema registry, catalog}}};
+
+  % ── flows ──
+  \draw[flow] (s1.north) -- (s1.north|-l1.south);
+  \draw[flow] (s2.north) -- (s2.north|-l1.south);
+  \draw[flow] (s3.north) -- (s3.north|-l1.south);
+  \draw[flow] (l1.north) -- (l2.south);
+  \draw[flow] (l2.north-|l3.south) -- (l3.south) node[midway,left,lbl]{marts};
+  \draw[flow] (l2.north-|l4.south) -- (l4.south) node[midway,right,lbl]{feature-ready entities (R10)};
+  \draw[flow] (l3.north) -- (bi.south);
+  \draw[flow] (l4.north) -- (ml.south);
+\end{tikzpicture}%
+}
+\caption{The layered reference framework. Data flows bottom-up; the native analytics layer
+(4) reads from the agile modeling layer (2) directly, not through the serving marts (3).
+The open table format is the shared physical substrate; the governance plane cross-cuts
+every layer. \textit{Author-generated.}}
+\label{fig:ch3-architecture}
+\end{figure}
+
+The arrangement answers the two scalability axes with distinct layers and couples them
+through one substrate. Layer~2 carries structural scalability (Data Vault~2.0 mechanics);
+layer~4 carries analytical scalability (native model integration); the open table format
+lets both read the same physical data without a separate copy, and the governance plane
+makes lineage and schema evolution observable across the whole stack. The direct
+modeling-to-analytics edge is the structural expression of requirement~R10 --- the
+interface specified in \S\ref{subsec:ch3-contract}.
 
 \subsection{Component Definitions}
 \label{subsec:ch3-components}
 
-\todo{For each component in the five layers, state: (1)~inputs, (2)~outputs,
-(3)~responsibility, (4)~which scalability dimension it serves. This is what makes
-the framework a formal artifact, not a sketch.}
+Each layer decomposes into named components. Table~\ref{tab:ch3-components} states, for
+every component, its inputs, outputs, responsibility, and the C1 dimension it serves. The
+input/output columns are what make the diagram an artifact rather than a sketch: they
+define the interfaces along which the layers connect.
+
+\definecolor{tblcomp}{RGB}{255,243,224}
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.25}
+\footnotesize
+\begin{tabularx}{\linewidth}{|p{2.5cm}|>{\raggedright\arraybackslash}p{2.6cm}|>{\raggedright\arraybackslash}p{2.6cm}|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}p{2.3cm}|}
+\hline
+\rowcolor{tblheader}
+\textcolor{white}{\textbf{Component}} &
+\textcolor{white}{\textbf{Inputs}} &
+\textcolor{white}{\textbf{Outputs}} &
+\textcolor{white}{\textbf{Responsibility}} &
+\textcolor{white}{\textbf{Dimension}} \\
+\hline
+\rowcolor{tblstruct}\multicolumn{5}{|l|}{\textbf{Layer 1 --- Ingestion \& Staging}} \\
+\hline
+Source connectors / CDC & Source systems & Change records & Capture heterogeneous sources incrementally & Source integration \\
+Lake landing (Bronze) & Change records & Immutable landed files & Persist raw data, schema-tolerant & Volume / throughput \\
+\hline
+\rowcolor{tblstruct}\multicolumn{5}{|l|}{\textbf{Layer 2 --- Agile Modeling}} \\
+\hline
+Raw Vault & Landed files & Historized, keyed entities & Non-destructive integration and historization & Schema evolution; Historization \\
+Business Vault & Raw Vault & PIT, Bridge, derived entities & Centralize business rules; pre-assemble history & Change propagation; Data readiness \\
+\hline
+\rowcolor{tblanal}\multicolumn{5}{|l|}{\textbf{Layer 3 --- Consumption / Serving}} \\
+\hline
+Dimensional marts / serving views & Business Vault & Star schemas, views & Serve interactive BI queries & Workload plurality \\
+\hline
+\rowcolor{tblanal}\multicolumn{5}{|l|}{\textbf{Layer 4 --- Native Analytics}} \\
+\hline
+Feature pipelines & Business / Raw Vault & Versioned feature sets & Derive features from Satellite attributes & Native model integration; Data readiness \\
+Model training \& serving & Feature sets & Predictions, scores & Train and serve predictive / prescriptive models & Maturity reach \\
+Lifecycle manager & Predictions, outcomes & Retraining triggers, registry entries & Feedback loops, retraining, model governance & Lifecycle support \\
+\hline
+\rowcolor{tblcomp}\multicolumn{5}{|l|}{\textbf{Layer 5 --- Governance \& Metadata Plane (cross-cutting)}} \\
+\hline
+Schema registry & Schema changes & Versioned, compatibility-checked schemas & Propagate evolution non-destructively & Schema evolution; Change propagation \\
+Catalog \& lineage tracker & All layer operations & Lineage graph, catalog & Maintain end-to-end lineage & Historization; Data readiness \\
+Open table format runtime & All reads / writes & ACID tables, time travel & Mediate relational and file access on one copy & Workload plurality; Volume \\
+\hline
+\end{tabularx}
+\caption{Component definitions across the five layers: inputs, outputs, responsibility,
+and the C1 dimension each serves. \textit{Author-generated.}}
+\label{tab:ch3-components}
+\end{table}
+
+The components in layers~1--3 are standard for a Data Vault~2.0 deployment on a Lakehouse
+\cite{linstedt2015, databricks2022}. Layer~4 and the schema registry are where the
+framework adds structure: the feature pipelines read Vault entities rather than raw files,
+and the registry turns Data Vault~2.0's additive-change convention into an enforced
+compatibility guarantee. How those components interoperate across the layer~2--layer~4
+boundary is the integration contract, specified next.
 
 \subsection{The Integration Contract}
 \label{subsec:ch3-contract}
 
-\todo{This is the centerpiece — it resolves or explicitly scopes the composability tension
-from \S\ref{sec:ch2-tension}. Define precisely: (1)~what the agile modeling layer
-guarantees to the native analytics layer (e.g., historized, business-keyed,
-lineage-stamped, feature-ready entities); (2)~how features are derived from
-Satellites/Business Vault; (3)~how schema evolution in the modeling layer is propagated
-without breaking trained models; (4)~how the open table format mediates both
-relational-lineage discipline and ML file access. State assumptions explicitly where
-you scope rather than fully solve — honesty here is strength, not weakness.}
+The integration contract is the centerpiece of the framework. Chapter~2 established that
+Data Vault~2.0 and the Lakehouse are practiced together but their interface is specified by
+neither paradigm (\S\ref{sec:ch2-tension}); this contract specifies it. It is a one-way
+agreement: the agile modeling layer (provider) guarantees a set of properties on the
+entities it exposes, and the native analytics layer (consumer) builds features only on
+those guarantees. The construct borrows the data-contract pattern from current data
+engineering practice \cite{jones2023datacontracts} \textit{(industry practice; not
+peer-reviewed)} and binds it to Data Vault~2.0 semantics. Figure~\ref{fig:ch3-contract}
+frames the interface.
+
+\begin{figure}[H]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[
+    >=stealth, font=\footnotesize,
+    party/.style={rectangle, rounded corners=3pt, draw=black, align=center,
+                  minimum width=4.0cm, minimum height=1.3cm, inner sep=4pt},
+    base/.style={rectangle, rounded corners=2pt, draw=black, align=center,
+                 minimum width=12.4cm, minimum height=1.0cm, inner sep=4pt},
+    flow/.style={->, very thick, >=stealth}
+  ]
+  \definecolor{lyModel}{RGB}{255,243,224}
+  \definecolor{lyAnal}{RGB}{229,245,231}
+  \definecolor{lyFmt}{RGB}{232,240,252}
+
+  \node[party, fill=lyModel] (prov) at (0,2.4)
+     {\textbf{Agile Modeling Layer}\\ \scriptsize Business Vault / Raw Vault\\ \scriptsize(provider)};
+  \node[party, fill=lyAnal] (cons) at (10,2.4)
+     {\textbf{Native Analytics Layer}\\ \scriptsize feature pipelines\\ \scriptsize(consumer)};
+
+  \draw[flow] (prov.east) -- (cons.west)
+     node[midway, above, align=center, font=\scriptsize\bfseries]{Integration Contract (R10)}
+     node[midway, below, align=center, font=\scriptsize]{historized · business-keyed ·\\ lineage-stamped · feature-ready entities};
+
+  \node[base, fill=lyFmt] (fmt) at (5,0.3)
+     {\textbf{Open Table Format (Delta / Iceberg)} --- one physical copy:\\
+      relational reconstruction for BI \quad+\quad direct file access for ML};
+  \draw[->, thick] (prov.south) -- (prov.south|-fmt.north);
+  \draw[->, thick] (cons.south) -- (cons.south|-fmt.north);
+\end{tikzpicture}%
+}
+\caption{The integration contract as a provider--consumer interface over a shared storage
+substrate. The modeling layer guarantees four entity properties; the analytics layer
+relies only on them. \textit{Author-generated.}}
+\label{fig:ch3-contract}
+\end{figure}
+
+\subsubsection*{Contract clauses}
+
+Table~\ref{tab:ch3-contract} states the contract as six clauses. Each pairs a provider
+guarantee with the mechanism that realizes it and the requirement it discharges.
+
+\definecolor{tblcomp}{RGB}{255,243,224}
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.3}
+\footnotesize
+\begin{tabularx}{\linewidth}{|c|>{\raggedright\arraybackslash}p{3.5cm}|>{\raggedright\arraybackslash}X|c|}
+\hline
+\rowcolor{tblheader}
+\textcolor{white}{\textbf{\#}} &
+\textcolor{white}{\textbf{Provider guarantee}} &
+\textcolor{white}{\textbf{Mechanism}} &
+\textcolor{white}{\textbf{Serves}} \\
+\hline
+\rowcolor{tblcomp} G1 & Historized entities & Satellite \texttt{load\_dts} gives point-in-time reconstruction of any attribute & R4 \\
+G2 & Business-keyed identity & Stable hash business keys keep joins valid across schema change & R1, R5 \\
+\rowcolor{tblcomp} G3 & Lineage stamp & Every entity carries source Satellite and load timestamp, recorded by the catalog & R12 \\
+G4 & Feature-ready shape & Business Vault PIT and Bridge structures pre-assemble history, so features need no re-derivation & R7 \\
+\rowcolor{tblcomp} G5 & Schema-evolution compatibility & Additive change only (new Satellites/columns); schema registry enforces backward compatibility & R2 \\
+G6 & Format-access duality & Open table format exposes the same entities as governed tables and as files & R8, R11 \\
+\hline
+\end{tabularx}
+\caption{The integration contract in six clauses: each provider guarantee, its realizing
+mechanism, and the requirement it discharges. \textit{Author-generated.}}
+\label{tab:ch3-contract}
+\end{table}
+
+Three mechanics make the clauses operational. \textit{Feature derivation:} features are
+computed from Satellite attributes and Business Vault entities, never from raw staging,
+and point-in-time joins key on \texttt{load\_dts} (G1, G4). \textit{Schema-evolution
+propagation:} an additive change creates a new Satellite or column, the schema registry
+issues a new compatible version, and feature pipelines opt into it explicitly; because no
+attribute is mutated in place, a model trained on an earlier version keeps reading valid
+inputs (G5). \textit{Format mediation:} the open table format stores each entity once and
+serves join-based reconstruction for BI and columnar file scans for machine learning from
+that single copy, so the two workloads never diverge into separate datasets \cite{deltalake2020,
+armbrust2021} (G6).
+
+\subsubsection*{Scope and stated assumptions}
+
+The contract resolves part of the \S\ref{sec:ch2-tension} tension and scopes the rest
+explicitly. Stating the limits is deliberate: an honest boundary is more defensible than
+an overclaimed resolution.
+
+\begin{itemize}[noitemsep, topsep=4pt]
+  \item \textbf{A1 (single format).} The contract assumes one open table format across all
+  layers. It does not address cross-format federation; mixing Delta and Iceberg is out of
+  scope.
+  \item \textbf{A2 (performance, conceded).} The contract does not eliminate the join-heavy
+  cost of Vault reconstruction identified in \S\ref{sec:ch2-tension}; it confines it. The
+  Business Vault and serving marts absorb the cost for BI, and feature pipelines that read
+  the Raw Vault directly inherit it. This is a real limitation, not a solved problem.
+  \item \textbf{A3 (history reconciliation).} Two history mechanisms coexist --- Satellite
+  \texttt{load\_dts} and table-version time travel. The contract makes \texttt{load\_dts}
+  the system of record for analytical point-in-time correctness; table versions are treated
+  as operational metadata only. This removes the ambiguity flagged in
+  Table~\ref{tab:align-conflict}.
+  \item \textbf{A4 (interface only).} The contract governs the modeling-to-analytics
+  interface. It does not specify model internals, serving latency, or BI tooling, which
+  remain implementation choices.
+\end{itemize}
 
 \subsection{Design Rules and Invariants}
 \label{subsec:ch3-invariants}
 
-\todo{Enumerate numbered design rules. Numbered invariants are inexpensive to write and
-read as genuine formalism — they are what a jury can probe one by one. Examples to
-develop and refine:
-\begin{enumerate}
-    \item[R1.] Every analytical feature must trace to a historized Satellite attribute.
-    \item[R2.] The native analytics layer reads exclusively from the agile modeling layer
-    or the consumption/serving layer; it must never read raw staging data directly.
-    \item[R3.] Schema changes in the Raw Vault must be additive (new Satellites or
-    Satellite columns); destructive changes are prohibited.
-    \item[R4.] Business keys must be stable and source-system-independent (hash keys).
-    \item[R5.] Every data entity entering the analytics layer must carry a lineage stamp
-    traceable to its source Satellite and load timestamp.
+The contract is enforced by a small set of design invariants. Each is a property the
+framework must hold at all times, stated so that it can be checked --- and contested ---
+one at a time. The bracketed labels map each invariant to the requirement (R) or contract
+clause (G) it enforces.
+
+\begin{enumerate}[topsep=4pt, itemsep=2pt, leftmargin=2.4em]
+  \item[\textbf{I1.}] Every analytical feature traces to a historized Satellite attribute; no feature originates outside the modeling layer. \hfill\textit{[R4, G1]}
+  \item[\textbf{I2.}] The native analytics layer reads only from the modeling or serving layers, never from raw staging directly. \hfill\textit{[R10]}
+  \item[\textbf{I3.}] Schema changes in the Raw Vault are additive --- new Satellites or columns; destructive changes are prohibited. \hfill\textit{[R2, G5]}
+  \item[\textbf{I4.}] Business keys are stable and source-system-independent (hash keys). \hfill\textit{[R1, G2]}
+  \item[\textbf{I5.}] Every entity entering the analytics layer carries a lineage stamp: source Satellite plus load timestamp. \hfill\textit{[R12, G3]}
+  \item[\textbf{I6.}] Point-in-time correctness uses Satellite \texttt{load\_dts} as the temporal system of record, not table-version time travel. \hfill\textit{[A3]}
+  \item[\textbf{I7.}] Business intelligence and machine learning read the same open-format tables; no parallel analytical copy is maintained. \hfill\textit{[R8, G6]}
+  \item[\textbf{I8.}] Every deployed model is pinned to a feature-set schema version; an additive schema change cannot silently alter a deployed model's inputs. \hfill\textit{[R9, G5]}
 \end{enumerate}
-Extend and adjust these invariants during writing.}
+
+\noindent Invariants I1, I2, and I5 close the provenance of every analytical result back to
+a governed source; I3, I6, and I8 are what let schema evolution and model training coexist
+without breaking each other --- the property the literature reviewed in
+\S\ref{sec:ch2-tension} leaves unspecified.
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Evaluation Methodology}
 \label{sec:ch3-methodology}
 
-\todo{Before any comparison, define \emph{how} you evaluate. Short but mandatory.
-Cover: (1)~method type — conceptual, criteria-based comparative assessment grounded in
-literature evidence; explicitly non-empirical; (2)~the six criteria from
-\S\ref{sec:ch2-criteria} restated with their rubric definitions; (3)~scoring scheme —
-qualitative levels (Low/Medium/High) with the meaning of each level defined
-\emph{per criterion}; (4)~evidence rule — every rating must be justified by a cited
-source or a stated argument, no bare scores; (5)~threats to validity stated up front
-(subjectivity, literature gaps, vendor-source bias).}
+The comparison that follows is a conceptual, criteria-based assessment, not an experiment.
+The thesis builds no prototype, so each approach is judged against documented evidence
+rather than measured performance. This is a stated limit, not a concealed one: the method
+establishes \emph{relative} standing among approaches under a fixed rubric, not absolute
+metrics. Defining the method before applying it is what separates the comparison in
+\S\ref{sec:ch3-comparison} from an opinion table. Figure~\ref{fig:ch3-protocol} shows the
+protocol.
+
+\begin{figure}[H]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[
+    >=stealth, font=\footnotesize,
+    step/.style={rectangle, rounded corners=3pt, draw=black, align=center,
+                 fill=stepfill, minimum width=2.6cm, minimum height=1.35cm, inner sep=3pt},
+    flow/.style={->, very thick, >=stealth}
+  ]
+  \definecolor{stepfill}{RGB}{232,240,252}
+  \node[step] (s1) at (0,0)    {\textbf{Criteria}\\ \scriptsize C2: six criteria\\ \scriptsize(Table~\ref{tab:c2-grid})};
+  \node[step] (s2) at (3.3,0)  {\textbf{Rubric}\\ \scriptsize Low / Medium / High\\ \scriptsize(Table~\ref{tab:c2-rubric})};
+  \node[step] (s3) at (6.6,0)  {\textbf{Evidence}\\ \scriptsize cited or argued;\\ \scriptsize peer-reviewed first};
+  \node[step] (s4) at (9.9,0)  {\textbf{Rating}\\ \scriptsize one level per\\ \scriptsize criterion, per approach};
+  \node[step] (s5) at (13.2,0) {\textbf{Matrix}\\ \scriptsize four approaches\\ \scriptsize($\S$\ref{sec:ch3-comparison})};
+  \draw[flow] (s1) -- (s2);
+  \draw[flow] (s2) -- (s3);
+  \draw[flow] (s3) -- (s4);
+  \draw[flow] (s4) -- (s5);
+\end{tikzpicture}%
+}
+\caption{The evaluation protocol. The instrument (criteria and rubric) is reused unchanged
+from construct~C2; each rating is fixed by the rubric and backed by evidence before it
+enters the matrix. \textit{Author-generated.}}
+\label{fig:ch3-protocol}
+\end{figure}
+
+\textbf{Instrument and scoring.} The instrument is construct~C2 reused without change: the
+six criteria of Table~\ref{tab:c2-grid} and the three-level rubric of
+Table~\ref{tab:c2-rubric}. Reusing it unchanged is deliberate --- the proposed framework is
+judged by the same yardstick Chapter~2 applied to the existing approaches, so the
+comparison cannot be accused of moving the goalposts. Each criterion is scored on an
+ordinal scale --- Low, Medium, High --- whose meaning is fixed \emph{per criterion} by the
+rubric. High is the favourable pole for every criterion, including implementation
+complexity, where High denotes low burden rather than high effort.
+
+\textbf{Evidence rule.} No bare score enters the matrix. Every rating carries a
+justification: a cited source, or an explicit argument from the framework's stated
+definition and invariants. Evidence is tiered. Peer-reviewed sources carry primary weight;
+industry and vendor sources are admitted only where peer-reviewed evidence is absent --- as
+it largely is for the Data Vault~2.0--Lakehouse composition --- and are flagged in-text as
+not peer-reviewed. A rating that rests only on vendor evidence is treated as weaker than one
+grounded in peer-reviewed work, and the discussion (\S\ref{sec:ch3-discussion}) revisits the
+ratings most exposed to this gap.
+
+\textbf{Threats to validity.} The method has known weaknesses, stated up front in
+Table~\ref{tab:ch3-threats} so that the comparison is read with them in view rather than
+despite them.
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.3}
+\rowcolors{2}{white}{tblrowalt}
+\begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{3.0cm}|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
+\hline
+\rowcolor{tblheader}
+\textcolor{white}{\textbf{Threat}} &
+\textcolor{white}{\textbf{Description}} &
+\textcolor{white}{\textbf{Mitigation}} \\
+\hline
+T1 --- Rating subjectivity & Ordinal scores reflect author judgment. & The rubric fixes the meaning of each level; every rating is cited or argued. \\
+T2 --- Literature gaps & Composability evidence is thin and largely non-peer-reviewed. & Gaps are flagged; affected claims are scoped, not asserted (assumption A2). \\
+T3 --- Vendor-source bias & Industry sources may overstate their own products. & Vendor sources are flagged, used for practice not principle, and cross-checked against peer-reviewed work where it exists. \\
+T4 --- Self-assessment bias & The author rates a framework of their own design. & The framework is not permitted to win every criterion; it inherits Data Vault~2.0's complexity cost explicitly (\S\ref{sec:ch3-comparison}). \\
+T5 --- No empirical validation & Ratings predict standing; they do not measure it. & Stated as the central limitation; claims are relative, not absolute. \\
+\hline
+\end{tabularx}
+\caption{Threats to the validity of the evaluation, with mitigations. \textit{Author-generated.}}
+\label{tab:ch3-threats}
+\end{table}
+
+With the method, instrument, scoring scale, evidence rule, and threats stated, the
+comparison can proceed. Section~\ref{sec:ch3-comparison} applies this protocol to Kimball,
+Inmon, Data Vault~2.0, and the proposed framework.
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Comparative Study}
 \label{sec:ch3-comparison}
 
-\todo{Apply the six-criteria methodology systematically across four approaches:
-\textbf{Kimball}, \textbf{Inmon}, \textbf{DV2.0}, and the \textbf{proposed framework}.
-Present as an evaluation matrix (approaches × criteria). Follow with a paragraph of
-justification per cell-cluster (not per cell) backed by citations.
-Important: the proposed framework must \emph{not} trivially win every criterion — show
-where it inherits DV2.0's implementation complexity cost. A framework that honestly
-concedes weaknesses is more credible than one that claims perfection.
-Anchors: BARC/Eckerson adoption figures (AnalyticsCreator 2025); Kimball \& Ross 2013;
-Linstedt \& Olschimke 2015; Armbrust et al.\ 2021.}
+Applying the protocol of \S\ref{sec:ch3-methodology} to the six criteria across the four
+approaches produces the matrix in Table~\ref{tab:ch3-matrix}. The justification that follows
+is organized by criterion cluster, not cell by cell, and each cluster cites the evidence
+behind its ratings.
 
-% Visual: evaluation matrix (approaches × criteria) with rubric legend.
+\definecolor{scHigh}{RGB}{200,230,201}
+\definecolor{scMed}{RGB}{255,236,179}
+\definecolor{scLow}{RGB}{255,205,210}
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.35}
+\begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}X|c|c|c|c|}
+\hline
+\rowcolor{tblheader}
+\textcolor{white}{\textbf{Criterion}} &
+\textcolor{white}{\textbf{Kimball}} &
+\textcolor{white}{\textbf{Inmon}} &
+\textcolor{white}{\textbf{DV2.0}} &
+\textcolor{white}{\textbf{Proposed}} \\
+\hline
+1.\ Structural flexibility & \cellcolor{scLow}Low & \cellcolor{scLow}Low & \cellcolor{scHigh}High & \cellcolor{scHigh}High \\
+\hline
+2.\ Query performance & \cellcolor{scHigh}High & \cellcolor{scMed}Medium & \cellcolor{scLow}Low & \cellcolor{scMed}Medium \\
+\hline
+3.\ Schema evolution support & \cellcolor{scLow}Low & \cellcolor{scLow}Low & \cellcolor{scHigh}High & \cellcolor{scHigh}High \\
+\hline
+4.\ Implementation complexity & \cellcolor{scMed}Medium & \cellcolor{scLow}Low & \cellcolor{scLow}Low & \cellcolor{scLow}Low \\
+\hline
+5.\ Analytical capability & \cellcolor{scLow}Low & \cellcolor{scLow}Low & \cellcolor{scLow}Low & \cellcolor{scHigh}High \\
+\hline
+6.\ Composability with modern storage & \cellcolor{scMed}Medium & \cellcolor{scLow}Low & \cellcolor{scMed}Medium & \cellcolor{scHigh}High \\
+\hline
+\end{tabularx}
+
+\smallskip
+{\footnotesize\colorbox{scHigh}{\strut\,High\,}\ \colorbox{scMed}{\strut\,Medium\,}\ \colorbox{scLow}{\strut\,Low\,}\quad favourable to unfavourable. For implementation complexity, \textbf{High} denotes low burden.}
+
+\caption{Evaluation matrix: four approaches against the six C2 criteria, scored on the
+rubric of Table~\ref{tab:c2-rubric}. The proposed framework leads on structure, analytics,
+and composability, but not on query performance or implementation complexity.
+\textit{Author-generated.}}
+\label{tab:ch3-matrix}
+\end{table}
+
+\textbf{Structural criteria (1, 3).} The classical paradigms score Low on both structural
+flexibility and schema evolution. Kimball's conformed dimensions and Inmon's normalized
+core each turn a new source or a structural change into a redesign event
+\cite{kimball2013, inmon2005}. Data Vault~2.0 and the proposed framework score High on both:
+the Hub--Link--Satellite decomposition absorbs new sources and structural change additively
+\cite{linstedt2015}. The proposed framework inherits this directly, and its schema registry
+(invariant~I3) hardens Data Vault~2.0's additive convention into an enforced compatibility
+guarantee.
+
+\textbf{Query performance (2).} Performance inverts the ranking. Kimball scores High ---
+the star schema is built for fast interactive queries \cite{kimball2013}. Data Vault~2.0
+scores Low: business views are reconstructed through hub--link--satellite joins, the
+workload columnar file scans handle worst (\S\ref{sec:ch2-tension}). Inmon and the proposed
+framework sit at Medium; both interpose a serving layer --- Inmon's data marts, the
+framework's Gold marts and Business Vault PIT/Bridge structures --- that absorbs the join
+cost for BI without removing it. The framework does not claim Kimball's performance;
+assumption~A2 concedes the residual cost explicitly.
+
+\textbf{Implementation complexity (4).} This is where the proposed framework is weakest, and
+the matrix says so. Inmon's enterprise normalized core, Data Vault~2.0's modeling rigor and
+specialized skills, and the proposed framework all score Low --- high burden. The framework
+is arguably the most demanding of the four: it carries Data Vault~2.0's full modeling cost
+and adds a native analytics layer, a governance plane, and the integration contract. Kimball
+scores Medium, reflecting its comparatively faster delivery of business intelligence
+\cite{kimball2013}. A framework that scored High here would not be credible.
+
+\textbf{Analytical capability (5).} Only the proposed framework reaches High. Kimball,
+Inmon, and Data Vault~2.0 are descriptive-to-diagnostic by construction and score Low; none
+integrates predictive or prescriptive capability natively, as Chapter~2 established
+\cite{kimball2013, inmon2005, linstedt2015}. The framework's native analytics layer, reading
+feature-ready entities across the integration contract, lifts it to prescriptive reach with
+models as first-class pipeline citizens \cite{armbrust2021, kreuzberger2023}.
+
+\textbf{Composability with modern storage (6).} Composability separates the framework from
+its parent. Data Vault~2.0 scores Medium: it runs on the Lakehouse, but by workaround ---
+vendor practice places the vault on Delta storage and absorbs the join cost downstream
+\cite{databricks2022, moronta2026} \textit{(industry practice; not peer-reviewed)}, with a
+peer-reviewed account confirming the pattern for data lakes \cite{giebler2019dv}. Inmon
+scores Low and Kimball Medium; neither was designed for file-based storage. The proposed
+framework scores High because composition is designed in rather than retrofitted: a single
+open table format and the integration contract make the modeling and analytics layers share
+one physical copy (invariant~I7). This is the rating most exposed to the evidence gap of
+\S\ref{sec:ch2-tension}, and \S\ref{sec:ch3-discussion} returns to it.
+
+Read across, the matrix has a clear shape. The proposed framework leads on the structural,
+analytical, and composability criteria, matches the field on query performance, and pays
+for this on implementation complexity. That trade-off --- capability bought with build cost
+--- is the subject of the discussion that follows.
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Discussion}
 \label{sec:ch3-discussion}
 
-\todo{Cover: (1)~trade-offs the framework makes and why; (2)~conditions of applicability
-— when this architecture is worth its complexity (high source heterogeneity + ambition
-toward predictive maturity) vs when it is overkill (stable, descriptive-only contexts);
-(3)~threats to validity revisited; (4)~limitations — no empirical validation, reliance
-on industry evidence for composability claims.}
+\textbf{The trade-off the framework makes.} The matrix of \S\ref{sec:ch3-comparison} shows
+a single coherent bargain rather than a uniform advantage. The framework buys structural
+agility, native analytical capability, and clean composability, and it pays in
+implementation complexity and a query-performance ceiling below Kimball's. The trade is
+deliberate. Structural and analytical scalability are the two axes the introduction set out
+to satisfy jointly (RQ1, RQ2); query performance is recoverable at the serving layer, and
+implementation complexity is a one-time build cost. An organization that needs neither axis
+should not pay that cost --- which is the question of applicability.
+
+\begin{figure}[H]
+\centering
+\resizebox{0.92\textwidth}{!}{%
+\begin{tikzpicture}[
+    >=stealth, font=\footnotesize,
+    quad/.style={rectangle, draw=black, align=center, text width=4.6cm,
+                 minimum width=5.1cm, minimum height=3.0cm, inner sep=4pt},
+    axlbl/.style={font=\small\bfseries}
+  ]
+  \definecolor{qBest}{RGB}{200,230,201}
+  \definecolor{qMid}{RGB}{255,236,179}
+  \definecolor{qOver}{RGB}{255,205,210}
+
+  % quadrants
+  \node[quad, fill=qMid]  (tl) at (-2.6, 1.6) {\textbf{Lakehouse analytics may suffice}\\[2pt] \scriptsize Stable sources, but predictive ambition. The Vault's agility is underused; a lighter modeling layer can feed the analytics stack.};
+  \node[quad, fill=qBest] (tr) at ( 2.6, 1.6) {\textbf{Best fit}\\[2pt] \scriptsize High source churn \emph{and} predictive ambition. The framework earns its complexity --- both axes are exercised.};
+  \node[quad, fill=qOver] (bl) at (-2.6,-1.6) {\textbf{Overkill}\\[2pt] \scriptsize Stable sources, descriptive reporting only. A Kimball dimensional warehouse is sufficient and cheaper.};
+  \node[quad, fill=qMid]  (br) at ( 2.6,-1.6) {\textbf{DV2.0 alone may suffice}\\[2pt] \scriptsize High source churn, descriptive only. Data Vault~2.0 without the analytics layer meets the need.};
+
+  % axes
+  \draw[->, thick] (-5.5,-3.4) -- (5.5,-3.4);
+  \draw[->, thick] (-5.5,-3.4) -- (-5.5,3.4);
+  \node[axlbl] at (0,-3.9) {Source heterogeneity \& change rate $\longrightarrow$};
+  \node[axlbl, rotate=90] at (-6.0,0) {Analytical ambition $\longrightarrow$};
+  \node[font=\scriptsize] at (-5.5,-3.7) {Low};
+  \node[font=\scriptsize] at (5.2,-3.7) {High};
+\end{tikzpicture}%
+}
+\caption{Conditions of applicability. The framework is worth its complexity in the
+high--high quadrant; in the other three, a simpler architecture meets the need at lower
+cost. \textit{Author-generated.}}
+\label{fig:ch3-applicability}
+\end{figure}
+
+\textbf{When the framework is worth its cost.} Figure~\ref{fig:ch3-applicability} maps the
+decision against two factors. The framework is justified only in the top-right quadrant:
+high source heterogeneity and change rate, combined with ambition beyond descriptive
+reporting. There, both scalability axes are exercised and the build cost is repaid. In the
+bottom-left quadrant --- stable sources, descriptive reporting --- a Kimball dimensional
+warehouse is sufficient and far cheaper, and the framework is overkill \cite{kimball2013}.
+The two off-diagonal quadrants are partial: with stable sources but predictive ambition, the
+Vault's structural agility is underused; with high churn but no analytical ambition, Data
+Vault~2.0 alone meets the need without the analytics layer \cite{linstedt2015}. The
+framework does not claim universal applicability, and that boundary is part of the
+contribution.
+
+\textbf{Threats to validity, revisited.} The threats stated in
+Table~\ref{tab:ch3-threats} bear unevenly on the results. The structural and analytical
+ratings rest on foundational, peer-reviewed sources and are the most secure. The
+composability rating (criterion~6) is the most exposed: it is the one most dependent on
+industry and vendor evidence (threat~T3) and on a literature that does not yet evaluate the
+composition formally (threat~T2). The self-assessment threat (T4) is contained by the
+matrix itself, which the framework does not sweep. None of these threats is dissolved here;
+they qualify the strength of the claims rather than the claims themselves.
+
+\textbf{Limitations.} Three limits follow directly and are stated plainly.
+
+\begin{itemize}[noitemsep, topsep=4pt]
+  \item \textbf{No empirical validation.} The framework is evaluated conceptually, not
+  measured. Its ratings predict relative standing; they are not benchmarks. Empirical
+  validation is the principal direction for future work.
+  \item \textbf{Composability evidence is thin.} The central composability claim leans on
+  vendor practice and a small peer-reviewed base \cite{databricks2022, giebler2019dv}. Until
+  the composition is studied empirically, that claim is scoped, not settled.
+  \item \textbf{Reference design, not an implementation.} The framework specifies layers, a
+  contract, and invariants; it deliberately leaves engine choice, serving latency, and
+  tooling open (assumption~A4). It is a blueprint to instantiate, not a system to deploy
+  as-is.
+\end{itemize}
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section*{Conclusion}
 \addcontentsline{toc}{section}{Conclusion}
 
-\todo{Summarize C3: the layered reference framework, the integration contract, the design
-invariants, and the evaluation results. Confirm which RQs are addressed and how. Bridge
-to the General Conclusion, which answers all three RQs and states limitations and future
-work.}
+This chapter delivered construct~C3. It specified a layered reference framework as a formal
+artifact, not a block diagram: four functional layers on a shared open-format substrate,
+component definitions with stated inputs and outputs, an integration contract of six
+clauses between the agile modeling layer and the native analytics layer, and eight design
+invariants that make the contract checkable. It then evaluated the framework with the C2
+instrument under a stated method, conceding where the framework is weak --- query
+performance and implementation complexity --- rather than claiming a clean sweep.
+
+The framework addresses all three research questions, each through a specific element of
+the design. Table~\ref{tab:ch3-rq-closure} states how.
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.3}
+\rowcolors{2}{white}{tblrowalt}
+\begin{tabularx}{\linewidth}{|p{1.1cm}|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}p{3.6cm}|}
+\hline
+\rowcolor{tblheader}
+\textcolor{white}{\textbf{RQ}} &
+\textcolor{white}{\textbf{How the framework addresses it}} &
+\textcolor{white}{\textbf{Framework element}} \\
+\hline
+RQ1 & New sources, schema changes, and volume growth are absorbed additively by the agile modeling layer, with destructive change prohibited. & Layers 1--2; requirements R1--R5; invariants I3, I4 \\
+RQ2 & Predictive and prescriptive models are first-class pipeline citizens, reading feature-ready entities rather than being bolted on downstream. & Layer 4; requirements R6--R9; clauses G1, G4 \\
+RQ3 & The two paradigms compose through an explicit contract over a single open table format, under stated conditions of applicability. & Integration contract (G1--G6); invariant I7; \S\ref{sec:ch3-discussion} \\
+\hline
+\end{tabularx}
+\caption{How Chapter~3 addresses the three research questions. \textit{Author-generated.}}
+\label{tab:ch3-rq-closure}
+\end{table}
+
+These are the answers the construct supports, not final claims. The General Conclusion
+takes Table~\ref{tab:ch3-rq-closure} as its starting point: it answers RQ1, RQ2, and RQ3
+explicitly against the evidence assembled across all three chapters, restates the
+limitations that qualify each answer, and sets out the empirical validation that this
+theoretical thesis leaves to future work.

@@ -197,9 +197,9 @@ Separation of keys, relationships, and context confines the blast radius of any 
 \subsection{Documented Drawbacks}
 \label{subsec:ch2-drawbacks}
 
-The same separation that buys structural agility imposes design and implementation complexity. Modeling an entity across hubs, links, and satellites multiplies the number of objects, and getting the decomposition right demands skill that is scarce in practice. Adoption surveys report the skills requirement (48\%) and implementation complexity (35\%) as the leading barriers \todo{cite: BARC/Eckerson DV2.0 adoption survey}.
+The same separation that buys structural agility imposes design and implementation complexity. Modeling an entity across hubs, links, and satellites multiplies the number of objects, and getting the decomposition right demands skill that is scarce in practice. Adoption surveys report the skills requirement (48\%) and implementation complexity (35\%) as the leading barriers \cite{analyticscreator2025} \textit{(industry source; not peer-reviewed)}.
 
-Query performance is the second cost. Reconstructing a single business view means joining a hub to its links and satellites, so analytical queries become join-heavy and slow on the vault itself; the same surveys flag query performance (32\%) as a recurring complaint \todo{cite: BARC/Eckerson DV2.0 adoption survey}. The downstream mart exists precisely to absorb this cost, which is why vault data is never user-ready on its own.
+Query performance is the second cost. Reconstructing a single business view means joining a hub to its links and satellites, so analytical queries become join-heavy and slow on the vault itself; the same surveys flag query performance (32\%) as a recurring complaint \cite{analyticscreator2025}. The downstream mart exists precisely to absorb this cost, which is why vault data is never user-ready on its own.
 
 These drawbacks are not incidental. The join-heavy query profile and the mandatory consumption layer become structurally important when Data Vault~2.0 is composed with a file-based Lakehouse, whose performance characteristics differ sharply from the relational engines the model assumes. That composability question is examined in Section~\ref{sec:ch2-tension}.
 
