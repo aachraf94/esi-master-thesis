@@ -1,37 +1,26 @@
-% ── Chapter 1: State of the Art and Conceptual Foundations ───────────────────
-\chapter{State of the Art and Conceptual Foundations}
+% ── Chapter 1: Structural Scalability in Data Warehouse Architectures ─────────
+\chapter{State of the Art: Structural Scalability in Data Warehouse Architectures}
 
 \section*{Introduction}
 \addcontentsline{toc}{section}{Introduction}
 
-This chapter builds the conceptual instrument the rest of the thesis depends on. The survey literature on decision support architectures is large, but it treats structural evolution and analytical capability as separate concerns. No single lens reads an architecture for both at once. This chapter supplies that lens.
+This chapter surveys the principal ways of modeling a data warehouse and compares them on a single property: structural scalability, the capacity to absorb new sources, schema changes, and volume growth without disruptive re-engineering. The data warehouse remains the integrating core of decision support, and the way its schema is modeled fixes how cheaply that core can change \cite{inmon2005, kimball2013}. The question this chapter answers is therefore narrow and concrete: when the business adds a source or revises a definition, which modeling discipline absorbs the change at the lowest structural cost?
 
-\noindent The argument moves from vocabulary to instrument:
+The chapter proceeds in four moves. Section~\ref{sec:ch1-dw-core} fixes the vocabulary, positions the warehouse within decision support, and defines what structural scalability denotes. Section~\ref{sec:ch1-criteria} derives five comparison criteria from the literature. Sections~\ref{sec:ch1-inmon}--\ref{sec:ch1-variants} survey the modeling approaches in turn --- the Inmon Corporate Information Factory, the Kimball dimensional model, Data Vault~2.0, and two modern variants --- describing the architecture of each and how it handles source integration, schema evolution, volume growth, and historization. Section~\ref{sec:ch1-comparison} sets the approaches side by side against the five criteria, and Section~\ref{sec:ch1-conclusion} states the verdict the literature supports.
 
-\begin{itemize}[noitemsep, topsep=4pt]
-  \item \textbf{\S\ref{sec:ch1-dsis}} positions the data warehouse as the operational core of DSIS and traces the move from reporting to modern analytical platforms.
-  \item \textbf{\S\ref{sec:ch1-dw-paradigms}} examines the two classical modeling paradigms and the shared assumption that limits them.
-  \item \textbf{\S\ref{sec:ch1-modern-arch}} surveys the modern architectures that arose to relax that assumption.
-  \item \textbf{\S\ref{sec:ch1-maturity}} sets out the analytical maturity spectrum and the demand each level places on the architecture.
-  \item \textbf{\S\ref{sec:ch1-scalability}} consolidates these observations into the dual-scalability conceptualization, the construct \textbf{C1}.
-  \item \textbf{\S\ref{sec:ch1-gap}} re-reads every surveyed approach through that lens and isolates the research gap.
-\end{itemize}
+\section{The Data Warehouse at the Core of Decision Support}
+\label{sec:ch1-dw-core}
 
-\noindent The survey sections are not neutral. Each one asks a single question about every paradigm it describes: \textit{does this property concern structural evolution or analytical capability?} That question is what turns a reading list into the instrument delivered in \S\ref{sec:ch1-scalability}.
-
-\section{Decision Support Information Systems: Concepts and Evolution}
-\label{sec:ch1-dsis}
-
-Decision Support Information Systems (DSIS) are computer-based systems that supply managers with the data and analysis needed for non-routine decisions. Four terms recur throughout the thesis and are fixed here:
+A decision support information system supplies managers with the integrated data and analysis they need for non-routine decisions. Four terms recur through the thesis and are fixed here.
 
 \begin{itemize}[noitemsep, topsep=4pt]
-  \item \textbf{DSS (Decision Support System)} the origin concept: a system that supports, rather than automates, managerial decisions.
-  \item \textbf{BI (Business Intelligence)} the technologies and practices for gathering, integrating, and analyzing information to improve decision making \cite{watson2009}.
-  \item \textbf{Data warehouse (DW)} the integrated, query-oriented store that feeds the analytical layer; the operational core of the DSIS.
-  \item \textbf{DSIS (as used here)} the data-warehouse-centric decision support systems that descend from the DSS concept and its consolidation under BI.
+  \item \textbf{Decision support system (DSS)} --- the origin concept: a system that supports, rather than automates, a managerial decision.
+  \item \textbf{Business intelligence (BI)} --- the technologies and practices for gathering, integrating, and analyzing information to improve decision making \cite{watson2009}.
+  \item \textbf{Data warehouse (DW)} --- the integrated, subject-oriented, non-volatile, time-variant store that feeds the analytical layer; the operational core of the decision support system \cite{inmon2005}.
+  \item \textbf{Data mart} --- a subject-specific subset of the warehouse, shaped for a particular group of consumers.
 \end{itemize}
 
-\noindent The field evolved through four eras, each widening the analytical scope of the decision layer while preserving the data warehouse at its core. Table~\ref{tab:dsis-evolution} summarizes the progression.
+\noindent The field evolved through four eras, each widening the analytical scope of the decision layer while keeping the warehouse at its core. Table~\ref{tab:dsis-evolution} summarizes the progression. A peer-reviewed survey traces the same arc at the storage layer, from warehouse to data lake to Lakehouse \cite{nambiar2022}.
 
 \begin{table}[H]
 \centering
@@ -50,347 +39,299 @@ Decision Support Information Systems (DSIS) are computer-based systems that supp
 2010s--present & Modern platforms (Lakehouse, cloud DW) & Full spectrum \\
 \hline
 \end{tabularx}
-\caption{Evolution of decision support paradigms.}
+\caption{Evolution of decision support paradigms. \textit{Author-generated, synthesizing \cite{chen2012, davenport2007, nambiar2022}.}}
 \label{tab:dsis-evolution}
 \end{table}
 
-\noindent The table makes one constant visible: every era kept the data warehouse as its core while widening the questions the system could answer \cite{chen2012, davenport2007}. A peer-reviewed survey traces the same arc at the storage layer, from data warehouse to data lake to Lakehouse \cite{nambiar2022}. Across all four eras runs a single assumption \textemdash{} that requirements can be specified before ingestion begins. That assumption is exactly what classical warehouse modeling encodes, and it is where the next section opens.
-
-\section{Classical Data Warehouse Modeling Paradigms}
-\label{sec:ch1-dw-paradigms}
-
-Two modeling paradigms have governed data warehouse design for three decades. They differ sharply in approach yet share the limitation that motivates this thesis: both assume a stable, pre-specified schema. A third paradigm, Data Vault~2.0, was built to escape that limitation and is previewed at the end of this section.
-
-\paragraph{Inmon \textemdash{} Corporate Information Factory (CIF).}
-A normalized, enterprise-wide warehouse built top-down \cite{inmon2005}.
-
-\begin{itemize}[noitemsep, topsep=4pt]
-  \item \textbf{Core} a subject-oriented, integrated, non-volatile, time-variant repository in third normal form (3NF), from which dependent data marts are derived.
-  \item \textbf{Strength} enterprise integration \textemdash{} one normalized model enforces consistency across the organization.
-  \item \textbf{Weakness} long time-to-value and schema rigidity \textemdash{} the enterprise model must be largely complete before it delivers, and structural revision propagates through the normalized core.
-\end{itemize}
-
-\paragraph{Kimball \textemdash{} dimensional model.}
-A warehouse built bottom-up from business processes \cite{kimball2013}.
-
-\begin{itemize}[noitemsep, topsep=4pt]
-  \item \textbf{Core} star and snowflake schemas of fact tables surrounded by conformed dimensions; slowly changing dimension (SCD) types~1, 2, and~3 record attribute history at different fidelities; the ETL discipline is codified separately \cite{kimball2004etl}.
-  \item \textbf{Strength} query simplicity and fast delivery of business intelligence.
-  \item \textbf{Weakness} schema changes are expensive and auditability is partial \textemdash{} SCD mechanisms record only the changes the designer anticipated.
-\end{itemize}
-
-\paragraph{The shared constraint.}
-Read against a formal design perspective, the two paradigms diverge on method but converge on a constraint \cite{golfarelli2009}. Both assume a stable analytical perimeter and a schema fixed at design time. Neither was engineered for continuous schema evolution, and neither offers a native path toward predictive or prescriptive capability. The rigidity is built into the modeling discipline itself, not into any particular implementation.
-
-\paragraph{Data Vault~2.0 (preview).}
-The third major paradigm, designed specifically to absorb schema evolution and source change without re-engineering \cite{linstedt2015}. It decomposes the model into \textit{hubs}, \textit{links}, and \textit{satellites} so that structural change is additive rather than destructive. This thesis previews it here only to complete the comparative frame; Chapter~2 examines its mechanics and limits in depth.
-
-\medskip
-\noindent Table~\ref{tab:dw-paradigms} positions all three paradigms across the properties the dual-scalability lens later formalizes.
-
-\begin{table}[H]
-\centering
-\renewcommand{\arraystretch}{1.35}
-\rowcolors{2}{white}{tblrowalt}
-\begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{3.4cm}|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
-\hline
-\rowcolor{tblheader}
-\textcolor{white}{\textbf{Property}} &
-\textcolor{white}{\textbf{Inmon CIF}} &
-\textcolor{white}{\textbf{Kimball}} &
-\textcolor{white}{\textbf{Data Vault 2.0}} \\
-\hline
-Modeling approach & Top-down, enterprise & Bottom-up, process & Source-aligned, additive \\
-Schema type & Normalized (3NF) & Dimensional (star) & Hub--link--satellite \\
-Integration strategy & Central normalized core & Conformed dimensions & Business keys + links \\
-Time-to-value & Long & Fast & Moderate \\
-Schema flexibility & Low & Low & High \\
-Auditability & Partial & Partial (SCD) & Full, non-destructive \\
-Analytical scope & Descriptive & Descriptive & Descriptive \\
-\hline
-\end{tabularx}
-\caption{Classical data warehouse modeling paradigms: comparative overview.}
-\label{tab:dw-paradigms}
-\end{table}
-
-\noindent The three paradigms differ widely on structural properties yet remain identical on analytical scope \textemdash{} all capped at descriptive reporting. The modern architectures surveyed next emerged precisely to relax the limits this table exposes.
-
-\section{Modern Decision-Making Architectures}
-\label{sec:ch1-modern-arch}
-
-Modern architectures arose to absorb pressures the classical warehouse could not: data velocity, source heterogeneity, and demand for machine learning on the same data. Each relaxes a specific constraint. Read through the dual-scalability lens, they target the analytical and volume dimensions far more than the structural-modeling one.
-
-\paragraph{Lambda architecture.}
-Addresses the trade-off between latency and accuracy with two parallel pipelines \cite{marz2015} \textit{(industry practice; not peer-reviewed)}.
-
-\begin{itemize}[noitemsep, topsep=4pt]
-  \item \textbf{Batch layer} recomputes accurate views over an immutable master dataset.
-  \item \textbf{Speed layer} serves low-latency approximate results over recent data.
-  \item \textbf{Serving layer} merges the two.
-  \item \textbf{Cost} the same business logic is implemented and maintained twice, once per layer.
-\end{itemize}
-
-\paragraph{Kappa architecture.}
-Eliminates that duplication by treating all processing as stream processing over a replayable log \cite{kreps2014} \textit{(industry practice; not peer-reviewed)}. A single code path handles real-time and historical computation; history is reprocessed by replaying the log. Lambda and Kappa both relieve velocity pressure, but neither introduces a discipline for structural schema evolution \textemdash{} both assume the \textit{processing logic}, not the source schema, is what changes.
-
-\paragraph{Data lake $\rightarrow$ Lakehouse.}
-A shift toward storage flexibility and workload plurality.
-
-\begin{itemize}[noitemsep, topsep=4pt]
-  \item \textbf{Data lake} introduced schema-on-read over open file formats, accepting raw data of any shape \textemdash{} but lacked governance, transactional semantics, and BI-grade query performance.
-  \item \textbf{Lakehouse} layers ACID table semantics and a metadata layer over open columnar formats such as Parquet and ORC \cite{armbrust2021}. Open table layers \textemdash{} Delta Lake \cite{deltalake2020}, Iceberg, Hudi \textemdash{} add transactions, time travel, and schema enforcement directly on the lake, so BI and ML run on one governed store. Peer-reviewed surveys confirm this as the consolidating direction of enterprise data architecture \cite{harby2024, schneider2024}.
-  \item \textbf{Gap} the open table layer governs \textit{file} transactions and schema enforcement, not entity-level lineage or historization discipline \textemdash{} the structural-modeling gap remains.
-\end{itemize}
-
-\paragraph{Delta architecture (medallion).}
-The dominant implementation pattern for the Lakehouse \cite{databricks2022} \textit{(industry practice; not peer-reviewed)}, organized as three zones:
-
-\begin{itemize}[noitemsep, topsep=4pt]
-  \item \textbf{Bronze} raw ingested data.
-  \item \textbf{Silver} cleansed and conformed data.
-  \item \textbf{Gold} business-ready aggregates.
-\end{itemize}
-
-\noindent The pattern maps the classical ETL/ELT pipeline \cite{vassiliadis2009} onto governed table layers, so refinement is incremental and each zone is independently queryable.
-
-\fig[0.98\textwidth]{fig_arch_evolution.png}{Data architecture evolution: from Classical DW to Lakehouse. Each arrow labels the constraint relaxed by the transition. The Medallion pattern is an implementation discipline within the Lakehouse, not a fourth peer architecture. \textit{Author-generated.}}{arch-evolution}
-
-\noindent These architectures advance the analytical and volume frontiers, yet none supplies the modeling discipline that governs structural lineage and historization. Their value, and their gap, becomes precise only once the analytical demand they serve is specified \textemdash{} which the maturity spectrum does next.
-
-\section{The Analytical Maturity Spectrum}
-\label{sec:ch1-maturity}
-
-Analytical capability progresses through four levels, and each level imposes a sharper architectural demand than the last \cite{gartner2012ascendancy} \textit{(industry practice; not peer-reviewed)}:
-
-\begin{itemize}[noitemsep, topsep=4pt]
-  \item \textbf{Descriptive} \textemdash{} \textit{what happened?}
-  \item \textbf{Diagnostic} \textemdash{} \textit{why did it happen?}
-  \item \textbf{Predictive} \textemdash{} \textit{what will happen?}
-  \item \textbf{Prescriptive} \textemdash{} \textit{what should be done?}
-\end{itemize}
-
-\noindent The requirements rise steeply across these steps. Descriptive and diagnostic analysis are served by the data warehouse and OLAP. Predictive analysis requires feature pipelines and a machine learning training capability grounded in statistical learning \cite{jordan2015}. Prescriptive analysis requires a closed feedback loop, model governance, and data fresh enough to act on; where decisions run over streaming data it also requires online learning over evolving distributions \cite{bifet2018}. The higher levels are not extensions of reporting \textemdash{} they demand a different pipeline shape. Table~\ref{tab:maturity-spectrum} maps each level to its requirement.
-
-\begin{table}[H]
-\centering
-\renewcommand{\arraystretch}{1.35}
-\rowcolors{2}{white}{tblrowalt}
-\begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{2.6cm}|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
-\hline
-\rowcolor{tblheader}
-\textcolor{white}{\textbf{Level}} &
-\textcolor{white}{\textbf{Question answered}} &
-\textcolor{white}{\textbf{Key capability required}} &
-\textcolor{white}{\textbf{Typical architecture}} \\
-\hline
-Descriptive & What happened? & Aggregation, reporting & DW + OLAP \\
-Diagnostic & Why did it happen? & Drill-down, correlation & DW + OLAP \\
-Predictive & What will happen? & Feature pipelines, ML training & ML platform + features \\
-Prescriptive & What should be done? & Feedback loops, model governance, fresh data & Closed-loop pipeline \\
-\hline
-\end{tabularx}
-\caption{Analytical maturity spectrum and corresponding architectural requirements.}
-\label{tab:maturity-spectrum}
-\end{table}
-
-\begin{figure}[H]
-\centering
-\resizebox{\linewidth}{!}{%
-\begin{tikzpicture}[
-  step/.style={draw, rounded corners=2pt, align=center, anchor=south west, font=\small},
-  classic/.style={step, fill=black!8, draw=black!45},
-  advanced/.style={step, draw=esiblue},
-  reqbox/.style={draw=black!30, fill=white, rounded corners=1pt, anchor=north, minimum width=3cm, minimum height=0.9cm, align=center, font=\footnotesize}
-]
-  % rising-demand axis
-  \draw[-{Latex}, black!55] (-0.7,0) -- (-0.7,6.1);
-  \node[rotate=90, anchor=south, font=\footnotesize, text=black!55] at (-1.05,3) {architectural demand};
-  % maturity columns (rising height = rising demand)
-  \node[classic,  minimum width=3cm, minimum height=1.4cm] at (0,0)    {\textbf{Descriptive}\\[2pt]\textit{\footnotesize what happened?}};
-  \node[classic,  minimum width=3cm, minimum height=2.8cm] at (3.4,0)  {\textbf{Diagnostic}\\[2pt]\textit{\footnotesize why?}};
-  \node[advanced, minimum width=3cm, minimum height=4.2cm, fill=esiblue!15] at (6.8,0)  {\textbf{Predictive}\\[2pt]\textit{\footnotesize what will happen?}};
-  \node[advanced, minimum width=3cm, minimum height=5.6cm, fill=esiblue!28] at (10.2,0) {\textbf{Prescriptive}\\[2pt]\textit{\footnotesize what to do?}};
-  % architectural requirement under each level
-  \node[reqbox] at (1.5,-0.15)  {DW + OLAP};
-  \node[reqbox] at (4.9,-0.15)  {DW + OLAP};
-  \node[reqbox] at (8.3,-0.15)  {ML platform\\+ feature pipelines};
-  \node[reqbox] at (11.7,-0.15) {Closed-loop\\+ governance};
-  % discontinuity: architecture changes between diagnostic and predictive
-  \draw[dashed, esiblue, thick] (6.6,-1.15) -- (6.6,6.1);
-  \node[anchor=south, font=\footnotesize\itshape, text=esiblue, align=center] at (6.6,6.15) {architecture must\\change here};
-  % "where most organizations stall" bracket under the first two levels
-  \draw[black!55] (0,-1.2) -- (0,-1.4) -- (6.4,-1.4) -- (6.4,-1.2);
-  \node[anchor=north, font=\footnotesize, text=black!70] at (3.2,-1.45) {where most organizations stall};
-  % maturity axis label
-  \node[font=\footnotesize, text=black!55] at (11.7,-1.95) {analytical maturity $\longrightarrow$};
-\end{tikzpicture}}
-\caption{Analytical maturity as rising architectural demand. The first two levels (grey) are served by the classical data warehouse; the predictive and prescriptive levels (blue) require a different pipeline shape. The dashed line marks where the architecture, not just the query, must change. \textit{Author-generated.}}
-\label{fig:maturity-staircase}
-\end{figure}
-
-\noindent Figure~\ref{fig:maturity-staircase} renders this as a rising staircase: the jump from diagnostic to predictive is where the architecture, not just the query, must change. Yet the empirical reality is that most organizations remain at the descriptive and diagnostic levels: industry surveys report that the large majority have not reached transformational analytics maturity \cite{gartner2018maturity} \textit{(industry practice; not peer-reviewed)}. A peer-reviewed review of maturity models adds the relevant caution \textemdash{} the consulting models in common use lack theoretical grounding, leaving maturity defined without a rigorous instrument \cite{dataanalyticsmaturity2024}. That absence is part of what the next section repairs.
-
-The implication is structural, not incremental. Reaching the prescriptive level requires the decision pipeline to be designed for native analytical capability from the outset, not extended with downstream additions. This is the demand that the \textit{analytical scalability} axis \textemdash{} one half of the dual construct defined next \textemdash{} is built to measure.
-
-\section{Conceptual Framing of Scalability in DSIS}
-\label{sec:ch1-scalability}
-
-The survey reveals a consistent split: existing approaches advance either structural evolution or analytical integration, but never frame both as dimensions of one property, and never combine them into a single instrument. Data Vault~2.0 advances structural evolution; the Lakehouse advances analytical integration. Neither is articulated as a form of \textit{scalability}, and the two are never read together. This section closes that gap by formalizing both as the construct \textbf{C1}.
+Across all four eras runs a single design assumption: that requirements can be specified before ingestion begins, so the schema can be settled at design time \cite{golfarelli2009}. That assumption is what the modeling paradigms surveyed below encode, and it is exactly what source heterogeneity and business change now strain. When a source is added or a definition revised, an architecture built on a fixed schema must be partly rebuilt; one built to absorb change need only be extended. The difference between the two is what this chapter calls \textit{structural scalability}.
 
 \begin{quote}
-\textbf{Definition (C1).} \textit{Scalability in DSIS} is the capacity of the system to grow \textemdash{} structurally and analytically \textemdash{} without re-engineering the existing architecture.
+\textbf{Structural scalability} (as used here): the capacity of a warehouse architecture to absorb new data sources, schema changes, and volume growth without disruptive re-engineering of existing structures or the consumers that depend on them.
 \end{quote}
 
-\noindent The definition resolves into two distinct axes, each made assessable by five concrete dimensions:
+\noindent The term is used in this thesis as an organizing lens for comparison; it is not a formal construct, and the criteria that operationalize it in the next section are drawn from properties the surveyed literature already discusses.
 
-\begin{itemize}[noitemsep, topsep=4pt]
-  \item \textbf{Structural scalability} how the system absorbs change in its data and sources.
-  \item \textbf{Analytical scalability} how far the system can progress in analytical capability.
-\end{itemize}
+\section{Criteria for Comparing Structural Scalability}
+\label{sec:ch1-criteria}
 
-\subsection{Structural Scalability}
-\label{subsec:ch1-structural}
-
-The capacity of a DSIS to evolve its data structure and integration footprint without disruptive re-engineering. Without it, every new source or schema change forces a partial rebuild. Five dimensions characterize it:
-
-\begin{itemize}[noitemsep, topsep=4pt]
-  \item \textbf{Source integration} the cost of absorbing a new heterogeneous data source, measured in effort, schema impact, and pipeline disruption.
-  \item \textbf{Schema evolution} the cost and blast radius of structural changes (column renames, entity splits, type changes), and the degree to which they are non-destructive and version-aware.
-  \item \textbf{Volume and throughput growth} the capacity to scale data volume and ingestion load without architectural redesign.
-  \item \textbf{Historization and auditability} the completeness and non-destructiveness of the historical record, and the ability to audit changes over time.
-  \item \textbf{Loosely-coupled change propagation} the degree to which a structural change in one source or layer is isolated from downstream consumers.
-\end{itemize}
-
-\subsection{Analytical Scalability}
-\label{subsec:ch1-analytical}
-
-The capacity of a DSIS to progress along the maturity spectrum \textemdash{} descriptive toward prescriptive \textemdash{} with advanced capability integrated \textit{natively} in the decision pipeline rather than bolted on downstream. Without it, predictive and prescriptive capability can only be grafted externally, outside the governed pipeline. Five dimensions characterize it:
-
-\begin{itemize}[noitemsep, topsep=4pt]
-  \item \textbf{Maturity reach} the highest maturity level the architecture supports natively, from descriptive through prescriptive.
-  \item \textbf{Native model integration} the degree to which ML and predictive models are first-class citizens of the pipeline rather than external appendages.
-  \item \textbf{Data readiness for analytics} the freshness, trust, and feature availability of data at the point of analytical consumption.
-  \item \textbf{Workload plurality} the capacity to serve BI and ML workloads from the same governed data layer without duplication.
-  \item \textbf{Lifecycle support} the support for model retraining, feedback loops, and model governance within the pipeline.
-\end{itemize}
+To compare modeling approaches on more than impression, the survey fixes five criteria. Each is a recurring concern in the warehouse-modeling literature, and each isolates one way structure can be forced to change. Table~\ref{tab:ch1-criteria} states them.
 
 \begin{table}[H]
 \centering
 \renewcommand{\arraystretch}{1.35}
-\begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{2.6cm}|>{\raggedright\arraybackslash}p{3.8cm}|>{\raggedright\arraybackslash}X|}
+\rowcolors{2}{white}{tblrowalt}
+\begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{3.6cm}|>{\raggedright\arraybackslash}X|}
 \hline
 \rowcolor{tblheader}
-\textcolor{white}{\textbf{Axis}} &
-\textcolor{white}{\textbf{Dimension}} &
-\textcolor{white}{\textbf{Definition}} \\
+\textcolor{white}{\textbf{Criterion}} &
+\textcolor{white}{\textbf{What it measures}} \\
 \hline
-\rowcolor{tblstruct}
-\multirow{5}{2.6cm}{\textbf{Structural}}
-  & Source integration & Cost of absorbing a new heterogeneous source \\
-\rowcolor{tblstruct}
-  & Schema evolution & Cost and isolation of structural changes \\
-\rowcolor{tblstruct}
-  & Volume / throughput & Scaling capacity without redesign \\
-\rowcolor{tblstruct}
-  & Historization & Non-destructive full-history retention \\
-\rowcolor{tblstruct}
-  & Change propagation & Blast-radius isolation of structural change \\
-\hline
-\rowcolor{tblanal}
-\multirow{5}{2.6cm}{\textbf{Analytical}}
-  & Maturity reach & Highest maturity level natively supported \\
-\rowcolor{tblanal}
-  & Native model integration & ML as first-class pipeline citizen \\
-\rowcolor{tblanal}
-  & Data readiness & Freshness, trust, feature availability \\
-\rowcolor{tblanal}
-  & Workload plurality & BI + ML on same governed layer \\
-\rowcolor{tblanal}
-  & Lifecycle support & Retraining, feedback, model governance \\
+Source integration & The cost of absorbing a new, heterogeneous source --- in effort, schema impact, and pipeline disruption \cite{vassiliadis2009}. \\
+Schema evolution & The cost and blast radius of structural change (column renames, entity splits, type changes), and whether change is additive and version-aware or destructive \cite{kleppmann2017}. \\
+Volume and throughput growth & The capacity to scale data volume and ingestion load without redesigning the model \cite{linstedt2015}. \\
+Historization and auditability & The completeness and non-destructiveness of the historical record, and the ability to audit how data changed over time \cite{golfarelli2009}. \\
+Change-propagation coupling & The degree to which a structural change in one source or layer is isolated from downstream consumers rather than rippling through them \cite{kleppmann2017}. \\
 \hline
 \end{tabularx}
-\caption{Dual-scalability dimensions: Construct C1.}
-\label{tab:c1-dual-scalability}
+\caption{Five criteria for comparing structural scalability, each drawn from the warehouse-modeling literature. \textit{Author-generated.}}
+\label{tab:ch1-criteria}
 \end{table}
 
-\noindent Table~\ref{tab:c1-dual-scalability} presents the ten dimensions constituting C1; Chapters~2 and~3 evaluate existing approaches and the proposed framework against them.
+The five are not independent in practice --- a model that historizes non-destructively usually also isolates change well --- but each names a distinct failure mode, and keeping them separate lets the comparison in Section~\ref{sec:ch1-comparison} show \textit{where} an approach is strong rather than only \textit{that} it is. The sections that follow describe each approach and, at their close, assess it against these criteria.
+
+\section{The Inmon Corporate Information Factory}
+\label{sec:ch1-inmon}
+
+The Inmon approach builds the warehouse top-down as a single, enterprise-wide, normalized repository from which dependent data marts are derived \cite{inmon2005}. Inmon's definition of the warehouse --- subject-oriented, integrated, non-volatile, time-variant --- is the field's reference definition, and the Corporate Information Factory (CIF) is its architectural expression.
+
+\subsection{Architecture}
+\label{subsec:ch1-inmon-arch}
+
+At the center of the CIF sits a normalized relational model in third normal form (3NF). Data from operational systems is cleansed and integrated into this central model, which serves as the single enterprise source of truth; subject-specific data marts are then built from it for individual consumer groups. Figure~\ref{fig:ch1-inmon} shows the layered arrangement, from source systems through the integration layer to the marts.
+
+\fig[0.9\textwidth]{inmonModel.jpg}{The Inmon Corporate Information Factory: a normalized enterprise warehouse feeding dependent data marts. Source: adapted from \cite{inmon2005} \textit{(industry/illustrative source)}.}{ch1-inmon}
+
+The defining choice is normalization at the center. Because every fact is stored once in 3NF, the model enforces consistency across the enterprise: a customer or product is defined in exactly one place, and every mart inherits that definition. Integration is therefore a strength of the approach --- the central model is precisely an integration layer.
+
+The CIF is more than the central model. Around it sit several supporting components, each with a distinct role \cite{inmon2005}. A \textit{staging area} receives raw extracts from operational systems and holds them while they are cleansed and conformed. An optional \textit{operational data store} (ODS) provides an integrated, current-valued view for operational reporting, separate from the historical warehouse. The \textit{data delivery} layer then derives the dependent marts. The separation matters for the comparison that follows: in the CIF, integration logic is concentrated before the central model, so the model itself is clean but the pipeline that feeds it carries the full burden of reconciling each source. Adding a source means extending that reconciliation, not merely landing data.
+
+\subsection{Assessment Against the Criteria}
+\label{subsec:ch1-inmon-assess}
+
+The same normalization that delivers integration limits structural scalability. \textbf{Source integration} is rigorous but slow: a new source must be reconciled into the enterprise model before it delivers value, and that model must be largely complete before the warehouse is useful, giving the approach a long time-to-value \cite{inmon2005, golfarelli2009}. \textbf{Schema evolution} is costly: a structural change to a normalized entity can propagate through the foreign-key relationships that bind the model together, so revision has a wide blast radius. \textbf{Volume growth} is manageable on relational infrastructure but inherits the cost of join-intensive normalized access. \textbf{Historization} is time-variant by Inmon's definition, but the record of \textit{how} an attribute changed is not captured automatically; it must be modeled deliberately. \textbf{Change-propagation coupling} is high: the central model is a single point through which change travels to every dependent mart. The CIF is built for enterprise consistency, not for cheap structural change.
+
+\section{The Kimball Dimensional Model}
+\label{sec:ch1-kimball}
+
+The Kimball approach builds the warehouse bottom-up from business processes, modeling data for query simplicity rather than normalization \cite{kimball2013}. Where Inmon centralizes, Kimball delivers process-by-process and integrates through shared dimensions.
+
+\subsection{Architecture}
+\label{subsec:ch1-kimball-arch}
+
+The unit of design is the star schema: a central fact table recording the measurements of a business process, surrounded by dimension tables that hold the descriptive context (the who, what, where, and when). Figure~\ref{fig:ch1-star} shows the canonical shape. A snowflake schema normalizes those dimensions further. The transformation logic that populates these schemas is codified separately as a disciplined extract--transform--load (ETL) process \cite{kimball2004etl, vassiliadis2009}.
 
 \begin{figure}[H]
 \centering
-\definecolor{axisanal}{RGB}{210,120,20}
-\resizebox{\linewidth}{!}{%
 \begin{tikzpicture}[
-  qbox/.style={rounded corners=3pt, align=center, font=\footnotesize, minimum width=3.8cm, minimum height=1.6cm, anchor=center},
-  tick/.style={font=\scriptsize, inner sep=1pt}
-]
-  % quadrant placement of the surveyed approaches
-  \node[qbox, fill=black!6,    draw=black!35]            at (-3.7,-2.7) {\textbf{Classical DW}\\capped on both axes};
-  \node[qbox, fill=tblstruct,  draw=esiblue!60]          at ( 3.7,-2.7) {\textbf{Data Vault 2.0}\\structurally strong,\\analytically capped};
-  \node[qbox, fill=tblanal,    draw=axisanal!70]         at (-3.7, 2.7) {\textbf{Data Lake}\\analytically capable,\\structurally undisciplined};
-  \node[qbox, fill=esiblue!18, draw=esiblue, very thick] at ( 3.7, 2.7) {\textbf{Target}\\fully scalable DSIS};
-  % axes
-  \draw[-{Latex}, esiblue,  thick] (-6.6,0) -- (6.8,0);
-  \draw[-{Latex}, axisanal, thick] (0,-4.5) -- (0,4.8);
-  \node[fill=white, draw=black!50, rounded corners=1pt, font=\scriptsize, inner sep=2pt] at (0,0) {C1};
-  % axis titles
-  \node[text=esiblue,  font=\small\bfseries, anchor=west]  at (6.9,0)  {Structural};
-  \node[text=axisanal, font=\small\bfseries, anchor=south] at (0,4.85) {Analytical};
-  % structural dimension ticks (positive x)
-  \foreach \x/\lab in {1.2/Src, 2.4/Sch, 3.6/Vol, 4.8/His, 6.0/Prp}{
-    \draw[esiblue] (\x,0.12) -- (\x,-0.12);
-    \node[tick, text=esiblue, anchor=north] at (\x,-0.16) {\lab};
-  }
-  % analytical dimension ticks (positive y)
-  \foreach \y/\lab in {0.9/Mat, 1.8/ML, 2.7/Rdy, 3.6/Wkl, 4.5/Lif}{
-    \draw[axisanal] (0.12,\y) -- (-0.12,\y);
-    \node[tick, text=axisanal, anchor=east] at (-0.16,\y) {\lab};
-  }
-\end{tikzpicture}}
-\caption{Construct C1 as two orthogonal axes. Structural scalability (horizontal) and analytical scalability (vertical) are independent: each surveyed approach sits in a different quadrant, and only the top-right region satisfies both. Tick abbreviations match Table~\ref{tab:c1-dual-scalability} (Src, Sch, Vol, His, Prp; Mat, ML, Rdy, Wkl, Lif). \textit{Author-generated.}}
-\label{fig:c1-axes}
+    >=stealth, font=\footnotesize, scale=0.9, transform shape,
+    dim/.style={rectangle, rounded corners=2pt, draw=black, fill=satfill2,
+                align=center, minimum width=2.5cm, minimum height=1.0cm, inner sep=2pt},
+    fact/.style={rectangle, draw=black, fill=factfill, text=white,
+                 align=center, minimum width=2.7cm, minimum height=1.3cm, inner sep=2pt}
+  ]
+  \definecolor{satfill2}{RGB}{220,228,238}
+  \definecolor{factfill}{RGB}{70,110,150}
+  \node[fact] (f) {\textbf{FACT\_SALES}\\[1pt]\scriptsize FK keys + measures\\\scriptsize (qty, amount)};
+  \node[dim, above left=1.0cm and 1.1cm of f] (d1) {DIM\_DATE};
+  \node[dim, above right=1.0cm and 1.1cm of f] (d2) {DIM\_PRODUCT};
+  \node[dim, below left=1.0cm and 1.1cm of f] (d3) {DIM\_CUSTOMER};
+  \node[dim, below right=1.0cm and 1.1cm of f] (d4) {DIM\_STORE};
+  \draw[->] (d1) -- (f); \draw[->] (d2) -- (f);
+  \draw[->] (d3) -- (f); \draw[->] (d4) -- (f);
+\end{tikzpicture}
+\caption{A Kimball star schema: one fact table surrounded by conformed dimensions. \textit{Author-generated, after \cite{kimball2013}.}}
+\label{fig:ch1-star}
 \end{figure}
 
-\noindent \textbf{The two axes are orthogonal} (Figure~\ref{fig:c1-axes}). A system can be:
+Two design instruments organize the dimensional warehouse. The first is the \textit{grain}: the precise level of detail one fact-table row represents (one sale line, one daily balance), declared before any measure or dimension is attached. The second is the \textit{bus matrix}: a grid of business processes against shared dimensions that plans, in advance, which dimensions will be conformed across stars \cite{kimball2013}. Integration across processes is achieved through these \textit{conformed dimensions} --- dimensions shared verbatim across multiple stars, so that a ``customer'' means the same thing in the sales star and the support star. The bus matrix is what lets the warehouse grow process by process while staying integrated, but it also fixes the conformed dimensions early, which is why changing one later is expensive.
+
+History in the dimensional model is handled by slowly changing dimension (SCD) techniques. A Type~1 change overwrites the old value; a Type~2 change inserts a new dimension row and preserves the prior one; a Type~3 change keeps a limited number of prior values in additional columns \cite{kimball2013}. The designer chooses the SCD type per attribute, in advance, according to the history the business is expected to need.
+
+\subsection{Assessment Against the Criteria}
+\label{subsec:ch1-kimball-assess}
+
+The dimensional model trades structural flexibility for query simplicity and fast delivery. \textbf{Source integration} is faster than Inmon's because a new process can be modeled as its own star, but integrating it cleanly requires conforming its dimensions to the existing ones, which is a non-trivial design effort. \textbf{Schema evolution} is expensive: changing the grain of a fact table or the structure of a widely conformed dimension ripples into every star and report that uses it. \textbf{Volume growth} is handled well for query, since star schemas are tuned for it, though large Type~2 dimensions can grow awkwardly. \textbf{Historization} is partial by construction: SCD captures only the changes the designer anticipated and chose to model, and a Type~1 attribute discards its history entirely. \textbf{Change-propagation coupling} is moderate: conformed dimensions are a shared surface through which change propagates, but individual stars are otherwise independent. The dimensional model is optimized for the consumer, and that optimization is paid for at the moment the structure must change.
+
+\section{Data Vault 2.0}
+\label{sec:ch1-dv2}
+
+Data Vault~2.0 was designed specifically to remove the schema rigidity the two classical paradigms share \cite{linstedt2015}. Its central claim is that structural change can be made \textit{additive rather than destructive}: a new source or relationship is absorbed by adding objects, never by altering existing ones. This section examines the decomposition that yields that property.
+
+\subsection{The Hub--Link--Satellite Decomposition}
+\label{subsec:ch1-hls}
+
+Data Vault~2.0 separates an entity into three object types, each holding one kind of information \cite{linstedt2015}. Figure~\ref{fig:ch1-dv2-topology} shows the topology for a small customer--order model.
+
+\begin{figure}[H]
+\centering
+\resizebox{0.95\linewidth}{!}{%
+\begin{tikzpicture}[
+    >=stealth, font=\small,
+    hub/.style={rectangle, rounded corners=3pt, draw=hubline, very thick,
+                fill=hubfill, text=white, align=center,
+                minimum width=3.6cm, minimum height=1.3cm, inner sep=3pt},
+    lnk/.style={rectangle, rounded corners=3pt, draw=lnkline, very thick,
+                fill=lnkfill, text=white, align=center,
+                minimum width=4.0cm, minimum height=1.5cm, inner sep=3pt},
+    sat/.style={rectangle, rounded corners=3pt, draw=satline, very thick,
+                fill=satfill, text=black, align=center,
+                minimum width=3.8cm, minimum height=1.55cm, inner sep=3pt},
+    edge/.style={->, thick, draw=black!65}
+  ]
+  \definecolor{hubfill}{RGB}{43,89,143}
+  \definecolor{hubline}{RGB}{26,57,95}
+  \definecolor{lnkfill}{RGB}{56,142,60}
+  \definecolor{lnkline}{RGB}{30,90,38}
+  \definecolor{satfill}{RGB}{255,224,178}
+  \definecolor{satline}{RGB}{219,154,47}
+
+  % top row: HUB --- LINK --- HUB
+  \node[hub] (hc) {\textbf{HUB\_CUSTOMER}\\[2pt]\scriptsize BK: CustomerID};
+  \node[lnk, right=1.9cm of hc] (lk) {\textbf{LNK\_CUSTOMER\_ORDER}\\[2pt]\scriptsize FK $\rightarrow$ HUB\_CUSTOMER\\\scriptsize FK $\rightarrow$ HUB\_ORDER};
+  \node[hub, right=1.9cm of lk] (ho) {\textbf{HUB\_ORDER}\\[2pt]\scriptsize BK: OrderID};
+
+  % satellites below each hub
+  \node[sat, below=1.5cm of hc] (sc) {\textbf{SAT\_CUSTOMER}\\[2pt]\scriptsize name, address, phone\\\scriptsize load\_dts \textit{(historized)}};
+  \node[sat, below=1.5cm of ho] (so) {\textbf{SAT\_ORDER}\\[2pt]\scriptsize date, status, amount\\\scriptsize load\_dts \textit{(historized)}};
+
+  % edges --- no crossings
+  \draw[edge] (hc) -- (lk);
+  \draw[edge] (ho) -- (lk);
+  \draw[edge] (hc) -- (sc);
+  \draw[edge] (ho) -- (so);
+
+  % legend
+  \node[draw=hubline, fill=hubfill, minimum width=0.55cm, minimum height=0.38cm] (g1) at ($(sc.south west)+(0.1,-1.15)$) {};
+  \node[anchor=west, font=\footnotesize] at (g1.east) {\;Hub --- business key};
+  \node[draw=lnkline, fill=lnkfill, minimum width=0.55cm, minimum height=0.38cm] (g2) at ($(g1.west)+(5.1,0)$) {};
+  \node[anchor=west, font=\footnotesize] at (g2.east) {\;Link --- relationship};
+  \node[draw=satline, fill=satfill, minimum width=0.55cm, minimum height=0.38cm] (g3) at ($(g2.west)+(4.6,0)$) {};
+  \node[anchor=west, font=\footnotesize] at (g3.east) {\;Satellite --- historized context};
+\end{tikzpicture}}
+\caption{Data Vault~2.0 topology (Hub--Link--Satellite) for a customer--order model. Hubs store business keys, Links store relationships, Satellites store historized context. \textit{Author-generated, after} \cite{linstedt2015}.}
+\label{fig:ch1-dv2-topology}
+\end{figure}
 
 \begin{itemize}[noitemsep, topsep=4pt]
-  \item \textbf{Structurally scalable yet analytically capped} \textemdash{} as classical Data Vault~2.0 is, absorbing schema change yet reaching no further than descriptive analysis.
-  \item \textbf{Analytically capable yet structurally undisciplined} \textemdash{} as a raw data lake is, supporting ML yet governing neither lineage nor historization.
+  \item \textbf{Hub} --- stores only the business key, the stable, source-independent identifier the organization uses to recognize an entity (a customer, an order, a product). A Hub holds no descriptive attributes and no relationships. Once created it never changes; absorbing a new source entity means adding a Hub, not altering one.
+  \item \textbf{Link} --- stores a relationship between two or more Hubs, and nothing else. Relationships are tracked independently of the entities they connect, so a new business relationship becomes a new Link while existing Hubs and Satellites stay untouched.
+  \item \textbf{Satellite} --- stores the descriptive, frequently changing attributes of a Hub or a Link. Each row carries a load timestamp, and new versions are appended rather than overwritten, so the full attribute history accumulates as a by-product of the loading pattern.
 \end{itemize}
 
-\noindent A coherent scalable DSIS must therefore address both axes jointly, not trade one for the other. The next section applies this lens to every surveyed approach and shows that none does.
+\noindent Two layers govern the data \cite{varga2014}. The \textbf{Raw Vault} captures source data exactly as received, applying no business logic, and so serves as the auditable source-of-record. The \textbf{Business Vault} holds derived constructs --- computed satellites, bridge tables, interpreted rules --- isolated from the raw layer so that a change to a business rule never rewrites source history. Consumers query neither vault directly; a downstream dimensional mart reshapes the vault into the star schemas reporting tools expect \cite{kimball2013}. Figure~\ref{fig:ch1-dv2-arch} situates the Hub--Link--Satellite core within the full Data Vault~2.0 architecture, from staging through the two vault layers to the information-delivery marts.
 
-\section{Synthesis: Critical Reading and the Research Gap}
-\label{sec:ch1-gap}
+\fig[0.95\textwidth]{Data Vault 2.0 Architecture.png}{The full Data Vault~2.0 architecture: staging feeds the Raw Vault, derived logic sits in the Business Vault, and information-delivery marts serve consumers. Source: adapted from \cite{linstedt2015} \textit{(industry/illustrative source)}.}{ch1-dv2-arch}
 
-Read through the dual-scalability lens, no surveyed approach scores well on both axes at once. Each is strong on a subset of dimensions and weak on the rest, and that pattern of strengths and weaknesses \textit{is} the research gap. The four candidate approaches assess as follows:
+\subsection{Operating Principles}
+\label{subsec:ch1-dv2-principles}
 
-\paragraph{Classical paradigms (Inmon, Kimball).}
-Moderate structurally, capped analytically. Volume growth is manageable, but schema evolution is poor, source integration is rigid, historization is limited to anticipated SCD types, and change propagation is tightly coupled through the normalized core or conformed dimensions. Analytically they stop at descriptive and diagnostic and cannot progress without an external bolt-on.
+Four principles turn the topology into a loadable, scalable system \cite{linstedt2015}.
 
-\paragraph{Data lake.}
-Inverts that profile on the structural side. It scales volume and absorbs heterogeneous sources easily, but imposes no modeling discipline \textemdash{} schema-evolution governance, historization, and change-propagation isolation are all weak. Its analytical ceiling is potentially high, yet poor data quality and absent governance undermine data readiness, so the potential is rarely realized.
+\begin{itemize}[noitemsep, topsep=4pt]
+  \item \textbf{Hash-key surrogates} --- business keys are hashed into fixed-length surrogate keys, so loads compute keys independently and in parallel without lookups against previously loaded data. This decouples the loading of each object and lets ingestion scale horizontally.
+  \item \textbf{Insert-only loading} --- loads only append; the model never updates or deletes a row. This removes lock contention, makes loads idempotent and restartable, and yields a complete audit trail by construction \cite{vassiliadis2009}.
+  \item \textbf{Raw / Business Vault separation} --- the raw layer stays free of business logic so it can serve as the auditable record; derived logic is quarantined in the Business Vault \cite{varga2014}.
+  \item \textbf{Downstream consumption mart} --- the vault is optimized for loading and historization, not for querying; a dimensional mart materializes the user-facing layer, accepting query-time cost in exchange for load-time agility \cite{kimball2013}.
+\end{itemize}
 
-\paragraph{Lakehouse.}
-Strong analytically, partial structurally. ACID semantics, unified BI and ML workloads, and open formats give it strength across every analytical dimension. Structurally it handles volume and schema-on-read well, but it provides no modeling discipline for structural lineage and historization equivalent to Data Vault~2.0.
+\subsection{Assessment Against the Criteria}
+\label{subsec:ch1-dv2-assess}
 
-\paragraph{Data Vault~2.0.}
-Strong structurally, limited analytically \textemdash{} the mirror image of the Lakehouse. It is designed for schema evolution, source integration, historization, and change propagation, but does not natively support ML workloads or progression along the maturity spectrum. Chapter~2 examines this profile in depth.
+Data Vault~2.0 scores strongly on four of the five criteria. \textbf{Source integration} is strong: a new source maps to new Hubs, Links, and Satellites, and existing objects are untouched. \textbf{Schema evolution} is strong: changes are additive and version-aware, with no destructive rewrites. \textbf{Historization} is strong: insert-only loading retains complete, timestamped history as a by-product of the load pattern, not as an anticipated SCD type. \textbf{Change-propagation coupling} is low: separating keys, relationships, and context confines the blast radius of any structural change to the objects attached to the changed source. The one partial score is \textbf{volume growth}: hash keys and insert-only loading enable parallel ingestion, but raw scaling capacity is inherited from the host platform rather than guaranteed by the model. Table~\ref{tab:dv2-structural-assessment} records the assessment.
 
-\medskip
-\noindent Figure~\ref{fig:c1-heatmap} consolidates the four assessments against all ten C1 dimensions.
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.35}
+\rowcolors{2}{white}{tblrowalt}
+\begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{3.8cm}|>{\raggedright\arraybackslash}p{2.0cm}|>{\raggedright\arraybackslash}X|}
+\hline
+\rowcolor{tblheader}
+\textcolor{white}{\textbf{Criterion}} &
+\textcolor{white}{\textbf{DV2.0}} &
+\textcolor{white}{\textbf{Evidence}} \\
+\hline
+Source integration & \textbf{Strong} & A new source maps to new Hubs, Links, Satellites; existing objects untouched. \\
+Schema evolution & \textbf{Strong} & Changes are additive and version-aware; no destructive rewrites. \\
+Volume / throughput & \textbf{Partial} & Hash keys and insert-only loading enable parallel ingestion, but raw scaling is inherited from the platform. \\
+Historization & \textbf{Strong} & Insert-only loading retains complete, timestamped history by construction. \\
+Change-propagation coupling & \textbf{Strong} & Separation of keys, relationships, and context confines the blast radius of change. \\
+\hline
+\end{tabularx}
+\caption{Data Vault~2.0 assessed against the five structural-scalability criteria. \textit{Author assessment, grounded in \cite{linstedt2015, varga2014}.}}
+\label{tab:dv2-structural-assessment}
+\end{table}
 
-\fig[0.92\textwidth]{fig_c1_heatmap.png}{Surveyed architectures assessed against the C1 dual-scalability dimensions. Columns are grouped by axis (Structural left, Analytical right). Cell shading encodes the ordinal score: \checkmark~Strong (dark) / $\sim$~Partial (mid) / \texttimes~Weak (light). Scores are author assessments, not measured values. Column abbreviations: Src source integration, Sch schema evolution, Vol volume, His historization, Prp change propagation, Mat maturity reach, ML native model integration, Rdy data readiness, Wkl workload plurality, Lif lifecycle support. \textit{Author-generated.}}{c1-heatmap}
+\subsection{Documented Drawbacks}
+\label{subsec:ch1-dv2-drawbacks}
 
-\noindent Figure~\ref{fig:c1-heatmap} makes the gap geometric: strength clusters on one half or the other, and no row fills both halves. The structural strengths of Data Vault~2.0 and the analytical strengths of the Lakehouse are near-complementary \textemdash{} their fills are close to jigsaw pieces. Their combination is therefore the most promising candidate for a jointly scalable DSIS, yet that composability is asserted in industry practice and under-examined conceptually. That examination is the task of Chapter~2.
+The separation that buys structural agility imposes two well-documented costs. The first is implementation complexity: modeling an entity across Hubs, Links, and Satellites multiplies the number of objects, and getting the decomposition right demands scarce skill. Adoption surveys report the skills requirement and implementation complexity as the leading barriers to Data Vault adoption \cite{analyticscreator2025} \textit{(industry source; not peer-reviewed)}. The second is query performance: reconstructing a single business view means joining a Hub to its Links and Satellites, so analytical queries become join-heavy and slow on the vault itself \cite{analyticscreator2025}. The downstream mart exists precisely to absorb this cost, which is why vault data is never user-ready on its own. These costs are real, but they fall on query and build effort, not on structural scalability --- the property this chapter compares. The standard is also a living one: recent work removes maintenance-heavy satellite updates and pushes staging onto a data lake before populating the vault \cite{giebler2019dv}.
 
-\section*{Conclusion}
+\section{Modern Modeling Variants}
+\label{sec:ch1-variants}
+
+Two further approaches refine the structural question rather than answer a new one, and both are worth positioning briefly.
+
+\textbf{Anchor modeling} pushes the additive principle further than Data Vault. It decomposes data into anchors (entities), attributes, ties (relationships), and knots (shared enumerations), each in its own table, so that every structural change is an addition and the model is fully normalized to the sixth normal form \cite{ronnback2010anchor}. The peer-reviewed account demonstrates agile evolution in changing environments, at the cost of an even larger object count and heavier reliance on query-time reconstruction than Data Vault. Anchor modeling is best read as the structural-flexibility limit of the same family Data Vault belongs to.
+
+\textbf{Data mesh} reframes the problem organizationally rather than structurally. It distributes ownership of data to the domains that produce it, treating each domain's data as a product with its own model and contract, instead of integrating everything into one central schema \cite{dehghani2022mesh} \textit{(industry source; not peer-reviewed)}. Data mesh does not prescribe a table-level modeling discipline --- a domain may use Kimball, Data Vault, or another approach internally --- so it is orthogonal to the comparison here: it changes \textit{who owns} the structure, not \textit{how} a given store absorbs change. It is included to mark the boundary of the survey, not as a fourth modeling paradigm.
+
+\section{Comparative Analysis}
+\label{sec:ch1-comparison}
+
+Setting the approaches side by side against the five criteria makes the pattern explicit. Table~\ref{tab:ch1-comparison} records the comparison; the scores are author assessments grounded in the cited sources, on a three-level scale (Strong / Partial / Weak) where Strong denotes the favourable end of each criterion.
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.35}
+\rowcolors{2}{white}{tblrowalt}
+\begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{3.5cm}|>{\centering\arraybackslash}X|>{\centering\arraybackslash}X|>{\centering\arraybackslash}X|>{\centering\arraybackslash}X|}
+\hline
+\rowcolor{tblheader}
+\textcolor{white}{\textbf{Criterion}} &
+\textcolor{white}{\textbf{Inmon CIF}} &
+\textcolor{white}{\textbf{Kimball}} &
+\textcolor{white}{\textbf{Data Vault 2.0}} &
+\textcolor{white}{\textbf{Anchor}} \\
+\hline
+Source integration & Partial & Partial & \textbf{Strong} & \textbf{Strong} \\
+Schema evolution & Weak & Weak & \textbf{Strong} & \textbf{Strong} \\
+Volume / throughput & Partial & \textbf{Strong} & Partial & Partial \\
+Historization & Partial & Partial & \textbf{Strong} & \textbf{Strong} \\
+Change-propagation coupling & Weak & Partial & \textbf{Strong} & \textbf{Strong} \\
+\hline
+\end{tabularx}
+\caption{The four modeling approaches assessed against the five structural-scalability criteria. Scores are author assessments grounded in \cite{inmon2005, kimball2013, linstedt2015, ronnback2010anchor}; they are ordinal, not measured. \textit{Author-generated.}}
+\label{tab:ch1-comparison}
+\end{table}
+
+Two readings stand out. First, the classical paradigms cluster on the weak end of \textit{schema evolution} and \textit{change-propagation coupling} --- the two criteria that most directly capture the cost of change. Inmon's normalized core and Kimball's conformed dimensions are both shared surfaces through which change ripples, which is the price of the enterprise consistency each is built to deliver. Their strengths lie elsewhere: Inmon in integration rigor, Kimball in query-tuned volume handling. Second, the additive family --- Data Vault~2.0 and Anchor modeling --- inverts that profile, scoring Strong on exactly the change-related criteria where the classical paradigms are weak, and conceding only on volume, which both leave to the host platform.
+
+\subsection{Tracing a Structural Change}
+\label{subsec:ch1-tracing}
+
+The criteria become concrete when a single structural event is traced through each model. Consider the most common one: a new source system arrives carrying a customer attribute the warehouse has never stored --- say, a loyalty tier. Table~\ref{tab:ch1-tracing} follows the change through each approach.
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.35}
+\rowcolors{2}{white}{tblrowalt}
+\begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{2.9cm}|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}p{2.4cm}|}
+\hline
+\rowcolor{tblheader}
+\textcolor{white}{\textbf{Approach}} &
+\textcolor{white}{\textbf{What must change to absorb a new attribute}} &
+\textcolor{white}{\textbf{Blast radius}} \\
+\hline
+Inmon CIF & Reconcile the source in staging, alter the normalized customer entity, propagate to dependent marts and ETL. & Wide \\
+Kimball & Add or alter a column on the customer dimension; decide an SCD type; update every star and report using it. & Moderate \\
+Data Vault 2.0 & Add one Satellite to the existing customer Hub; load it insert-only. Existing objects untouched. & Narrow \\
+Anchor & Add one attribute table tied to the customer anchor. Existing tables untouched. & Narrow \\
+\hline
+\end{tabularx}
+\caption{Tracing a single structural change --- absorbing a new customer attribute --- through each modeling approach. \textit{Author-generated, grounded in \cite{inmon2005, kimball2013, linstedt2015, ronnback2010anchor}.}}
+\label{tab:ch1-tracing}
+\end{table}
+
+The trace makes the abstract criteria tangible. In the classical paradigms, absorbing the attribute means altering a structure that other consumers already depend on, so the change has to be coordinated across the marts and reports downstream. In the additive family, the same attribute is absorbed by adding one object and loading it, leaving every existing structure and consumer untouched. The difference in blast radius is precisely what the \textit{schema evolution} and \textit{change-propagation coupling} criteria measure.
+
+The complementarity is not free. The additive family pays for its structural flexibility in query performance and implementation complexity, the two costs documented in Section~\ref{subsec:ch1-dv2-drawbacks}. The comparison therefore does not crown a universally best model; it identifies which models minimize the cost of \textit{structural change} specifically, which is the property under study.
+
+\section{Conclusion}
+\label{sec:ch1-conclusion}
 \addcontentsline{toc}{section}{Conclusion}
 
-This chapter delivered two things:
+Read against the five criteria, the literature supports a clear conclusion. The classical paradigms --- Inmon and Kimball --- were engineered for a stable analytical perimeter and a schema fixed at design time; both absorb structural change poorly, because the very features that deliver enterprise consistency (a normalized core, conformed dimensions) are shared surfaces through which change propagates \cite{inmon2005, kimball2013, golfarelli2009}. The additive family --- Data Vault~2.0 and, at its limit, Anchor modeling --- was designed to remove exactly that rigidity, and on the criteria that capture the cost of change it is the strongest available approach: source integration, schema evolution, historization, and change-propagation coupling are all handled additively, by adding objects rather than altering them \cite{linstedt2015, ronnback2010anchor}.
 
-\begin{itemize}[noitemsep, topsep=4pt]
-  \item \textbf{A grounded survey} \textemdash{} the vocabulary of DSIS, from the classical warehouse paradigms through the modern Lakehouse and the analytical maturity spectrum.
-  \item \textbf{The construct C1} (\S\ref{sec:ch1-scalability}) \textemdash{} structural and analytical scalability as two orthogonal axes, each operationalized by five assessable dimensions: the single lens the literature had been missing.
-\end{itemize}
+Among these, Data Vault~2.0 is the approach the literature treats as the practical reference point for structural scalability: it is more widely documented and adopted than Anchor modeling, and it pairs strong structural properties with an explicit governance model and a clear consumption path \cite{linstedt2015, giebler2019dv}. Its costs --- join-heavy queries and implementation complexity --- are real but fall outside structural scalability proper, landing instead on query performance and build effort. Data Vault~2.0 best addresses structural scalability among warehouse modeling approaches, and the thesis carries that finding forward.
 
-\noindent Applying C1 in \S\ref{sec:ch1-gap} exposed the gap. No single existing approach is strong on both axes, and the near-complementary profiles of Data Vault~2.0 and the Lakehouse make their combination the leading candidate \textemdash{} with their composability still unexamined. Chapter~2 subjects Data Vault~2.0 and the Lakehouse to a systematic critical analysis along these dimensions, developing the composability examination (C2).
+What none of these modeling approaches addresses is the second axis of the problem: how far the architecture can progress in analytical capability, from reporting through prediction. Every approach surveyed here stops at descriptive and diagnostic analysis, because warehouse modeling governs structure, not analytics. That second axis --- analytical scalability --- is the subject of Chapter~2.

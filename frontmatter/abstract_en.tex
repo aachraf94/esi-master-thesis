@@ -1,25 +1,26 @@
 \uchapter{Abstract}
 
-Classical data warehouse architectures impose rigid structural and analytical constraints
-that limit the scalability of decision support information systems (DSIS): they cannot
-absorb schema changes and new source integrations without disruptive re-engineering, and
-they relegate predictive analytics to peripheral add-ons. Extending them incrementally
-reproduces the problem at larger scale.
+Decision support information systems are built on data warehouses, and two pressures now
+strain them: growing source heterogeneity and rising analytical ambition. The literature
+studies the resulting concerns separately --- \textit{structural scalability}, the capacity
+to absorb schema change and new sources without disruptive re-engineering, and
+\textit{analytical scalability}, the capacity to support the full analytical maturity
+spectrum, from business intelligence to prediction, natively in the pipeline.
 
-This thesis frames the core challenge as a \textit{dual-scalability deficit} —
-\textit{structural scalability} (absorbing schema evolution and source heterogeneity without
-re-engineering) and \textit{analytical scalability} (embedding predictive and prescriptive
-models natively in the decision pipeline) — and examines whether Data Vault~2.0 and the
-Lakehouse paradigm can be composed to close it. The central argument is that composition
-is achievable, but conditioned on an explicit integration contract that reconciles
-DV2.0's hash-keyed relational lineage discipline with the Lakehouse's schema-on-read file
-layer. Three conceptual constructs operationalize this finding: a formal dual-scalability
-framework (C1), a composability analysis of Data Vault~2.0 and the Lakehouse with a
-six-criteria evaluation instrument (C2), and a layered reference architecture with a formal
-integration contract evaluated against the criteria (C3).
+This thesis is a state-of-the-art study. It surveys and compares the principal architectures
+on each axis against five criteria drawn from the literature, and proposes no architecture of
+its own. On the structural axis it compares the Inmon Corporate Information Factory, the Kimball
+dimensional model, Data Vault~2.0, and Anchor modeling, and finds that Data Vault~2.0 best
+absorbs change because it makes schema evolution additive rather than destructive. On the
+analytical axis it compares the Lambda and Kappa designs, the data lake, the Lakehouse, and
+the Delta architecture, and finds that the Lakehouse, implemented through the Delta
+architecture, best supports native, full-spectrum analytics. It then reviews the existing
+combination of the two --- Data Vault~2.0 on the Lakehouse --- and finds it established in
+industry practice but thinly evaluated in peer-reviewed work. Every conclusion traces to the
+surveyed literature.
 
 \bigskip
 \vspace{0.5cm}
 
 \noindent\textbf{Keywords:} Data Vault~2.0, Lakehouse, Decision support system,
-Scalable architecture, Predictive analytics.
+Structural scalability, Analytical scalability, State of the art.

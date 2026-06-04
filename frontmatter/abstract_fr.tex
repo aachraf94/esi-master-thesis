@@ -1,27 +1,27 @@
 \uchapter{Résumé}
 
-Les architectures d'entrepôts de données classiques imposent des contraintes structurelles
-et analytiques qui limitent la scalabilité des systèmes d'information décisionnels (SID)~:
-elles ne peuvent absorber les évolutions de schéma et l'intégration de nouvelles sources
-sans refonte coûteuse, et reléguent l'analytique prédictive à un rôle périphérique.
-Étendre ces architectures de manière incrémentale reproduit le problème à plus grande
-échelle.
+Les systèmes d'information décisionnels reposent sur des entrepôts de données, que deux
+pressions mettent aujourd'hui à l'épreuve~: l'hétérogénéité croissante des sources et
+l'ambition analytique grandissante. La littérature étudie séparément les deux problèmes qui
+en découlent --- la \textit{scalabilité structurelle}, capacité à absorber les évolutions de
+schéma et de nouvelles sources sans refonte coûteuse, et la \textit{scalabilité analytique},
+capacité à couvrir nativement tout le spectre de maturité analytique, de l'informatique
+décisionnelle à la prédiction.
 
-Cette thèse cadre le défi central comme un déficit de \textit{dual-scalabilité}~:
-la \textit{scalabilité structurelle} (absorption des évolutions de schéma et de
-l'hétérogénéité des sources sans refonte) et la \textit{scalabilité analytique}
-(intégration native des modèles prédictifs et prescriptifs dans le pipeline décisionnel).
-Elle examine si Data Vault~2.0 et le paradigme Lakehouse peuvent être composés pour
-combler ce déficit. L'argument central est que la composition est réalisable, sous réserve
-d'un contrat d'intégration explicite qui réconcilie la discipline de lignage relationnel
-haché de DV2.0 avec la couche de fichiers \textit{schema-on-read} du Lakehouse. Trois
-constructs conceptuelles formalisent cette réponse~: un cadre formel de dual-scalabilité
-(C1), une analyse de composabilité de Data Vault~2.0 et du Lakehouse avec un instrument
-de six critères (C2), et une architecture de référence en couches avec un contrat
-d'intégration formel évalué selon les critères (C3).
+Cette thèse est une étude de l'état de l'art. Elle recense et compare les principales
+architectures sur chaque axe à l'aide de cinq critères issus de la littérature, et ne propose
+aucune architecture propre. Sur l'axe structurel, elle compare la Corporate Information
+Factory d'Inmon, le modèle dimensionnel de Kimball, Data Vault~2.0 et l'Anchor modeling, et
+conclut que Data Vault~2.0 absorbe le mieux le changement, car il rend l'évolution de schéma
+additive plutôt que destructive. Sur l'axe analytique, elle compare les conceptions Lambda et
+Kappa, le data lake, le Lakehouse et l'architecture Delta, et conclut que le Lakehouse, mis en
+œuvre via l'architecture Delta, soutient le mieux une analytique native couvrant tout le
+spectre. Elle examine enfin la combinaison existante des deux --- Data Vault~2.0 sur le
+Lakehouse --- et constate qu'elle est établie dans la pratique industrielle mais peu évaluée
+dans les travaux à comité de lecture. Chaque conclusion s'appuie sur la littérature recensée.
 
 \bigskip
 \vspace{0.5cm}
 
 \noindent\textbf{Mots-clés~:} Data Vault~2.0, Lakehouse, Système d'information
-décisionnel, Architecture scalable, Analytique prédictive.
+décisionnel, Scalabilité structurelle, Scalabilité analytique, État de l'art.

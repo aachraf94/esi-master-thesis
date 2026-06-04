@@ -1,99 +1,42 @@
 % ── General Conclusion ────────────────────────────────────────────────────────
 \uchapter{General Conclusion}
 
-\section*{Recall of the Problem and Approach}
-\addcontentsline{toc}{section}{Recall of the Problem and Approach}
+\section*{Summary of the Study}
+\addcontentsline{toc}{section}{Summary of the Study}
 
-Classical decision support architectures force two premature commitments: a fixed
-structural schema, expensive to revise once ingestion begins, and a fixed analytical scope,
-typically descriptive reporting that cannot be extended toward prediction without grafting
-external systems onto the pipeline. The literature treats these as separate problems ---
-structural agility through Data Vault~2.0, analytical integration through the Lakehouse ---
-and never frames both as dimensions of one property. This thesis treated them as a single
-problem of \textit{dual scalability} and proceeded in three steps that map to its three
-chapters: conceptualize the property (C1, Chapter~1), analyze whether the two leading
-paradigms compose (C2, Chapter~2), and construct and evaluate a reference framework that
-unifies them (C3, Chapter~3).
+This thesis surveyed decision support architectures along two forms of scalability that the literature has largely studied apart. Structural scalability is the capacity to absorb new sources, schema change, and volume growth without re-engineering; analytical scalability is the capacity to support the full maturity spectrum --- descriptive through prescriptive --- natively in the pipeline. The study proposed no architecture of its own. It surveyed the existing approaches on each axis, compared them against criteria drawn from the literature, and reported what already exists at their intersection.
 
-\section*{Constructs Against the Research Questions}
-\addcontentsline{toc}{section}{Constructs Against the Research Questions}
+\section*{Findings}
+\addcontentsline{toc}{section}{Findings}
 
-\noindent\textbf{RQ1 --- structural.} \textit{How can a DSIS architecture absorb new
-sources, schema changes, and volume growth without disruptive re-engineering?} It does so
-when structural change is made additive rather than destructive. Construct~C1 defined
-structural scalability through five dimensions; the framework's agile modeling layer
-(\S\ref{sec:ch3-framework}) discharges them with the Data Vault~2.0 Hub--Link--Satellite
-decomposition on an open table format, where a new source is absorbed by adding objects,
-not by restructuring existing ones (requirements R1--R5). Invariants~I3 and~I4 make this
-binding: schema changes are additive and business keys are stable, so growth in sources,
-structure, and volume does not propagate as a rebuild.
+The three objectives set out in the introduction are answered as follows, each from the surveyed literature rather than from any position taken here.
 
-\noindent\textbf{RQ2 --- analytical.} \textit{How can predictive/prescriptive capability be
-integrated natively into the decision pipeline rather than bolted on downstream?} By
-positioning the analytics layer to read from the modeling layer directly. Construct~C1
-defined analytical scalability through five dimensions; the framework's native analytics
-layer (\S\ref{sec:ch3-framework}) satisfies them by consuming historized, business-keyed,
-feature-ready entities across the integration contract (clauses~G1 and~G4), so models are
-first-class pipeline citizens rather than external appendages (requirements R6--R9). The
-read-path that bypasses the serving marts is the structural expression of this answer.
+\noindent\textbf{Structural scalability.} Chapter~1 compared the Inmon Corporate Information Factory, the Kimball dimensional model, Data Vault~2.0, and Anchor modeling against five criteria. The classical paradigms were engineered for a stable schema and absorb change poorly, because the very features that deliver enterprise consistency --- a normalized core, conformed dimensions --- are shared surfaces through which change propagates. The additive family inverts this profile, and Data Vault~2.0 emerged as the approach the literature treats as the practical reference point for structural scalability: it makes schema change additive rather than destructive, at a documented cost in query complexity and implementation effort \cite{linstedt2015, inmon2005, kimball2013}.
 
-\noindent\textbf{RQ3 --- composability.} \textit{Under what conditions can an agile
-relational-lineage modeling discipline (Data Vault~2.0) and a file-based Lakehouse paradigm
-be composed into a single coherent architecture, and what are the trade-offs?} Chapter~2
-(\S\ref{sec:ch2-tension}) established that the two are combined in practice but their
-interface is specified by neither paradigm. Chapter~3 specified it as the integration
-contract (clauses~G1--G6), with a single open table format mediating relational-lineage
-discipline and machine-learning file access on one physical copy (invariant~I7). The answer
-separates what was \textit{resolved} from what was \textit{scoped}. Resolved: the interface
-is specifiable, and the overlap between Satellite historization and table-version time
-travel is settled by making \texttt{load\_dts} the system of record (assumption~A3). Scoped:
-the join-heavy query cost is confined to the serving and feature layers, not eliminated
-(assumption~A2); the composability claim rests partly on industry evidence; and the
-architecture is justified only where source heterogeneity and analytical ambition are both
-high (\S\ref{sec:ch3-discussion}). The trade-off is therefore explicit: structural agility,
-native analytics, and clean composability are bought at the cost of implementation
-complexity and a query-performance ceiling below a dimensional warehouse's.
+\noindent\textbf{Analytical scalability.} Chapter~2 compared the Lambda and Kappa streaming designs, the data lake, the Lakehouse, and the Delta architecture against five further criteria. The streaming architectures solved freshness but left advanced analytics outside the pipeline; the data lake opened the store to machine learning but could not make its data dependable. The Lakehouse, with its open table formats and the native model loop they enable, was found to support the full maturity spectrum on one governed store, with the Delta (medallion) architecture as its dominant implementation pattern \cite{armbrust2021, harby2024, schneider2024, databricks2022}.
+
+\noindent\textbf{Dual scalability.} Chapter~3 reported that an architecture addressing both forms already exists in practice: Data Vault~2.0 implemented on top of the Lakehouse, with the vault as a governed tenant of the open store. The pairing is coherent because the strongest structural approach and the strongest analytical architecture supply exactly what the other lacks. But the evidence is uneven --- the combination rests mostly on industry and vendor sources, with thin peer-reviewed evaluation and trade-offs that are acknowledged informally rather than measured \cite{databricks2022, giebler2019dv, schneider2024}.
 
 \section*{Limitations}
 \addcontentsline{toc}{section}{Limitations}
 
-The contribution is conceptual, and its limits are stated plainly rather than concealed.
+The study's conclusions inherit the limits of a literature-based method, which it states plainly.
 
 \begin{itemize}[noitemsep, topsep=4pt]
-  \item \textbf{Conceptual, not empirical.} The framework is evaluated by criteria-based
-  comparison, not measurement. Its ratings predict relative standing; they are not
-  benchmarks.
-  \item \textbf{Thin composability evidence.} The central RQ3 claim leans on vendor practice
-  and a small peer-reviewed base, because the Data Vault~2.0--Lakehouse composition is not
-  yet studied formally in the literature.
-  \item \textbf{Reference model, not a system.} The framework specifies layers, a contract,
-  and invariants; it deliberately leaves engine choice, serving latency, and tooling open
-  (assumption~A4). It is a blueprint to instantiate, not a deployed system.
-  \item \textbf{Reasoned, not measured, performance.} The query-performance ceiling and the
-  cost of the serving layer are argued from the paradigms' mechanics, not from
-  measurement.
+  \item \textbf{No measurement.} The comparisons rest on criteria-based assessment grounded in the cited sources, not on benchmarks. The ordinal scores indicate relative standing, not measured performance.
+  \item \textbf{Uneven evidence at the intersection.} The dual-scalability finding leans on industry and vendor publications, because the Data Vault~2.0--Lakehouse combination is not yet studied formally in the peer-reviewed literature.
+  \item \textbf{Scope.} The survey covers the principal mainstream approaches on each axis; it does not claim to be exhaustive of every modeling variant or analytical platform.
 \end{itemize}
 
-\section*{Future Work}
-\addcontentsline{toc}{section}{Future Work}
+\section*{Directions the Literature Points Toward}
+\addcontentsline{toc}{section}{Directions the Literature Points Toward}
 
-Each limitation points to concrete work that would extend the thesis.
+The gaps identified above mark where further work is needed, and the literature itself points in three directions.
 
 \begin{itemize}[noitemsep, topsep=4pt]
-  \item \textbf{Prototype and benchmark.} Instantiate the framework with Data Vault~2.0 on
-  Delta or Iceberg and benchmark it across the six C2 criteria, turning the conceptual
-  ratings into measured ones.
-  \item \textbf{Case study at OURQUILANE.} Instantiate the framework on a real logistics and
-  decision-support context, the natural bridge from this theoretical thesis to applied work.
-  \item \textbf{Quantify the composability trade-off.} Study the Data Vault~2.0--Lakehouse
-  query-performance cost empirically, closing the measurement gap identified in
-  \S\ref{sec:ch2-tension}.
-  \item \textbf{Extend the analytics layer.} Carry the native analytics layer from
-  predictive toward prescriptive and optimization workloads, with feedback-driven
-  retraining inside the governed pipeline (requirement~R9).
+  \item \textbf{Empirical evaluation of the combination.} A benchmark of Data Vault~2.0 on an open table format, measured against the structural and analytical criteria used here, would turn the conventional combination into a measured one and close the evidence gap of Chapter~3.
+  \item \textbf{Quantifying the trade-offs.} The join-heavy query cost the vault imposes on columnar storage, and the overlap between satellite historization and table-version time travel, are acknowledged but unmeasured; both are concrete targets for study.
+  \item \textbf{Consolidated criteria.} The two criteria instruments used in this thesis are drawn from the literature but not standardized; a validated, theoretically grounded instrument for dual scalability would let future surveys compare architectures on a common footing.
 \end{itemize}
 
-The thesis set out to treat structural and analytical scalability as one property and to
-show that the two leading paradigms can be composed to serve it. Construct~C3 is that
-composition, specified and evaluated; the work above is the path from a defensible blueprint
-to a measured system.
+\noindent The thesis set out to read decision support architectures for both structural and analytical scalability, and to report what the literature concludes about each and about their combination. Its central finding is that the field already supplies a strong answer on each axis --- Data Vault~2.0 for structure, the Lakehouse for analytics --- and that their combination, though practised, still awaits the peer-reviewed evaluation that would confirm it.
