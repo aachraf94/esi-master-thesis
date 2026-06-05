@@ -4,7 +4,7 @@
 \section*{Introduction}
 \addcontentsline{toc}{section}{Introduction}
 
-This chapter surveys the principal ways of modeling a data warehouse and compares them on a single property: structural scalability, the capacity to absorb new sources, schema changes, and volume growth without disruptive re-engineering. The data warehouse remains the integrating core of decision support, and the way its schema is modeled fixes how cheaply that core can change \cite{inmon2005, kimball2013}. The question this chapter answers is therefore narrow and concrete: when the business adds a source or revises a definition, which modeling discipline absorbs the change at the lowest structural cost?
+This chapter surveys the principal ways of modeling a data warehouse and compares them on a single property: structural scalability, the capacity to absorb new sources, schema changes, and volume growth without disruptive re-engineering. The data warehouse remains the integrating core of decision support, and the way its schema is modeled fixes how cheaply that core can change \parencite{inmon2005, kimball2013}. The question this chapter answers is therefore narrow and concrete: when the business adds a source or revises a definition, which modeling discipline absorbs the change at the lowest structural cost?
 
 The chapter proceeds in four moves. Section~\ref{sec:ch1-dw-core} fixes the vocabulary, positions the warehouse within decision support, and defines what structural scalability denotes. Section~\ref{sec:ch1-criteria} derives five comparison criteria from the literature. Sections~\ref{sec:ch1-inmon}--\ref{sec:ch1-variants} survey the modeling approaches in turn --- the Inmon Corporate Information Factory, the Kimball dimensional model, Data Vault~2.0, and two modern variants --- describing the architecture of each and how it handles source integration, schema evolution, volume growth, and historization. Section~\ref{sec:ch1-comparison} sets the approaches side by side against the five criteria, and Section~\ref{sec:ch1-conclusion} states the verdict the literature supports.
 
@@ -14,13 +14,13 @@ The chapter proceeds in four moves. Section~\ref{sec:ch1-dw-core} fixes the voca
 A decision support information system supplies managers with the integrated data and analysis they need for non-routine decisions. Four terms recur through the thesis and are fixed here.
 
 \begin{itemize}[noitemsep, topsep=4pt]
-  \item \textbf{Decision support system (DSS)} --- the origin concept: a system that supports, rather than automates, a managerial decision.
-  \item \textbf{Business intelligence (BI)} --- the technologies and practices for gathering, integrating, and analyzing information to improve decision making \cite{watson2009}.
-  \item \textbf{Data warehouse (DW)} --- the integrated, subject-oriented, non-volatile, time-variant store that feeds the analytical layer; the operational core of the decision support system \cite{inmon2005}.
+  \item \textbf{Decision support system (DSS)} --- ``an integrated set of software, databases, models and analysis tools designed to support decision-makers in their decision-making process'' \parencite{abbas2024bi}, enabling users to pose complex questions over data drawn from operational systems such as ERP, WMS, and CRM.
+  \item \textbf{Business intelligence (BI)} --- the technologies and practices for gathering, integrating, and analyzing information to improve decision making \parencite{watson2009}.
+  \item \textbf{Data warehouse (DW)} --- the integrated, subject-oriented, non-volatile, time-variant store that feeds the analytical layer; the operational core of the decision support system \parencite{inmon2005}.
   \item \textbf{Data mart} --- a subject-specific subset of the warehouse, shaped for a particular group of consumers.
 \end{itemize}
 
-\noindent The field evolved through four eras, each widening the analytical scope of the decision layer while keeping the warehouse at its core. Table~\ref{tab:dsis-evolution} summarizes the progression. A peer-reviewed survey traces the same arc at the storage layer, from warehouse to data lake to Lakehouse \cite{nambiar2022}.
+\noindent The field evolved through four eras, each widening the analytical scope of the decision layer while keeping the warehouse at its core. Table~\ref{tab:dsis-evolution} summarizes the progression. A peer-reviewed survey traces the same arc at the storage layer, from warehouse to data lake to Lakehouse \parencite{nambiar2022}.
 
 \begin{table}[H]
 \centering
@@ -39,11 +39,11 @@ A decision support information system supplies managers with the integrated data
 2010s--present & Modern platforms (Lakehouse, cloud DW) & Full spectrum \\
 \hline
 \end{tabularx}
-\caption{Evolution of decision support paradigms. \textit{Author-generated, synthesizing \cite{chen2012, davenport2007, nambiar2022}.}}
+\caption{Evolution of decision support paradigms. \textit{Author-generated, synthesizing \parencite{chen2012, davenport2007, nambiar2022}.}}
 \label{tab:dsis-evolution}
 \end{table}
 
-Across all four eras runs a single design assumption: that requirements can be specified before ingestion begins, so the schema can be settled at design time \cite{golfarelli2009}. That assumption is what the modeling paradigms surveyed below encode, and it is exactly what source heterogeneity and business change now strain. When a source is added or a definition revised, an architecture built on a fixed schema must be partly rebuilt; one built to absorb change need only be extended. The difference between the two is what this chapter calls \textit{structural scalability}.
+Across all four eras runs a single design assumption: that requirements can be specified before ingestion begins, so the schema can be settled at design time \parencite{golfarelli2009}. That assumption is what the modeling paradigms surveyed below encode, and it is exactly what source heterogeneity and business change now strain. When a source is added or a definition revised, an architecture built on a fixed schema must be partly rebuilt; one built to absorb change need only be extended. The difference between the two is what this chapter calls \textit{structural scalability}.
 
 \begin{quote}
 \textbf{Structural scalability} (as used here): the capacity of a warehouse architecture to absorb new data sources, schema changes, and volume growth without disruptive re-engineering of existing structures or the consumers that depend on them.
@@ -66,11 +66,11 @@ To compare modeling approaches on more than impression, the survey fixes five cr
 \textcolor{white}{\textbf{Criterion}} &
 \textcolor{white}{\textbf{What it measures}} \\
 \hline
-Source integration & The cost of absorbing a new, heterogeneous source --- in effort, schema impact, and pipeline disruption \cite{vassiliadis2009}. \\
-Schema evolution & The cost and blast radius of structural change (column renames, entity splits, type changes), and whether change is additive and version-aware or destructive \cite{kleppmann2017}. \\
-Volume and throughput growth & The capacity to scale data volume and ingestion load without redesigning the model \cite{linstedt2015}. \\
-Historization and auditability & The completeness and non-destructiveness of the historical record, and the ability to audit how data changed over time \cite{golfarelli2009}. \\
-Change-propagation coupling & The degree to which a structural change in one source or layer is isolated from downstream consumers rather than rippling through them \cite{kleppmann2017}. \\
+Source integration & The cost of absorbing a new, heterogeneous source --- in effort, schema impact, and pipeline disruption \parencite{vassiliadis2009}. \\
+Schema evolution & The cost and blast radius of structural change (column renames, entity splits, type changes), and whether change is additive and version-aware or destructive \parencite{kleppmann2017}. \\
+Volume and throughput growth & The capacity to scale data volume and ingestion load without redesigning the model \parencite{linstedt2015}. \\
+Historization and auditability & The completeness and non-destructiveness of the historical record, and the ability to audit how data changed over time \parencite{golfarelli2009}. \\
+Change-propagation coupling & The degree to which a structural change in one source or layer is isolated from downstream consumers rather than rippling through them \parencite{kleppmann2017}. \\
 \hline
 \end{tabularx}
 \caption{Five criteria for comparing structural scalability, each drawn from the warehouse-modeling literature. \textit{Author-generated.}}
@@ -82,33 +82,33 @@ The five are not independent in practice --- a model that historizes non-destruc
 \section{The Inmon Corporate Information Factory}
 \label{sec:ch1-inmon}
 
-The Inmon approach builds the warehouse top-down as a single, enterprise-wide, normalized repository from which dependent data marts are derived \cite{inmon2005}. Inmon's definition of the warehouse --- subject-oriented, integrated, non-volatile, time-variant --- is the field's reference definition, and the Corporate Information Factory (CIF) is its architectural expression.
+The Inmon approach builds the warehouse top-down as a single, enterprise-wide, normalized repository from which dependent data marts are derived \parencite{inmon2005}. Inmon's definition of the warehouse --- subject-oriented, integrated, non-volatile, time-variant --- is the field's reference definition, and the Corporate Information Factory (CIF) is its architectural expression.
 
 \subsection{Architecture}
 \label{subsec:ch1-inmon-arch}
 
 At the center of the CIF sits a normalized relational model in third normal form (3NF). Data from operational systems is cleansed and integrated into this central model, which serves as the single enterprise source of truth; subject-specific data marts are then built from it for individual consumer groups. Figure~\ref{fig:ch1-inmon} shows the layered arrangement, from source systems through the integration layer to the marts.
 
-\fig[0.9\textwidth]{inmonModel.jpg}{The Inmon Corporate Information Factory: a normalized enterprise warehouse feeding dependent data marts. Source: adapted from \cite{inmon2005} \textit{(industry/illustrative source)}.}{ch1-inmon}
+\fig[0.9\textwidth]{inmonModel.jpg}{The Inmon Corporate Information Factory: a normalized enterprise warehouse feeding dependent data marts. Source: adapted from \parencite{inmon2005} \textit{(industry/illustrative source)}.}{ch1-inmon}
 
 The defining choice is normalization at the center. Because every fact is stored once in 3NF, the model enforces consistency across the enterprise: a customer or product is defined in exactly one place, and every mart inherits that definition. Integration is therefore a strength of the approach --- the central model is precisely an integration layer.
 
-The CIF is more than the central model. Around it sit several supporting components, each with a distinct role \cite{inmon2005}. A \textit{staging area} receives raw extracts from operational systems and holds them while they are cleansed and conformed. An optional \textit{operational data store} (ODS) provides an integrated, current-valued view for operational reporting, separate from the historical warehouse. The \textit{data delivery} layer then derives the dependent marts. The separation matters for the comparison that follows: in the CIF, integration logic is concentrated before the central model, so the model itself is clean but the pipeline that feeds it carries the full burden of reconciling each source. Adding a source means extending that reconciliation, not merely landing data.
+The CIF is more than the central model. Around it sit several supporting components, each with a distinct role \parencite{inmon2005}. A \textit{staging area} receives raw extracts from operational systems and holds them while they are cleansed and conformed. An optional \textit{operational data store} (ODS) provides an integrated, current-valued view for operational reporting, separate from the historical warehouse. The \textit{data delivery} layer then derives the dependent marts. The separation matters for the comparison that follows: in the CIF, integration logic is concentrated before the central model, so the model itself is clean but the pipeline that feeds it carries the full burden of reconciling each source. Adding a source means extending that reconciliation, not merely landing data.
 
 \subsection{Assessment Against the Criteria}
 \label{subsec:ch1-inmon-assess}
 
-The same normalization that delivers integration limits structural scalability. \textbf{Source integration} is rigorous but slow: a new source must be reconciled into the enterprise model before it delivers value, and that model must be largely complete before the warehouse is useful, giving the approach a long time-to-value \cite{inmon2005, golfarelli2009}. \textbf{Schema evolution} is costly: a structural change to a normalized entity can propagate through the foreign-key relationships that bind the model together, so revision has a wide blast radius. \textbf{Volume growth} is manageable on relational infrastructure but inherits the cost of join-intensive normalized access. \textbf{Historization} is time-variant by Inmon's definition, but the record of \textit{how} an attribute changed is not captured automatically; it must be modeled deliberately. \textbf{Change-propagation coupling} is high: the central model is a single point through which change travels to every dependent mart. The CIF is built for enterprise consistency, not for cheap structural change.
+The same normalization that delivers integration limits structural scalability. \textbf{Source integration} is rigorous but slow: a new source must be reconciled into the enterprise model before it delivers value, and that model must be largely complete before the warehouse is useful, giving the approach a long time-to-value \parencite{inmon2005, golfarelli2009}. \textbf{Schema evolution} is costly: a structural change to a normalized entity can propagate through the foreign-key relationships that bind the model together, so revision has a wide blast radius. \textbf{Volume growth} is manageable on relational infrastructure but inherits the cost of join-intensive normalized access. \textbf{Historization} is time-variant by Inmon's definition, but the record of \textit{how} an attribute changed is not captured automatically; it must be modeled deliberately. \textbf{Change-propagation coupling} is high: the central model is a single point through which change travels to every dependent mart. The CIF is built for enterprise consistency, not for cheap structural change.
 
 \section{The Kimball Dimensional Model}
 \label{sec:ch1-kimball}
 
-The Kimball approach builds the warehouse bottom-up from business processes, modeling data for query simplicity rather than normalization \cite{kimball2013}. Where Inmon centralizes, Kimball delivers process-by-process and integrates through shared dimensions.
+The Kimball approach builds the warehouse bottom-up from business processes, modeling data for query simplicity rather than normalization \parencite{kimball2013}. Where Inmon centralizes, Kimball delivers process-by-process and integrates through shared dimensions.
 
 \subsection{Architecture}
 \label{subsec:ch1-kimball-arch}
 
-The unit of design is the star schema: a central fact table recording the measurements of a business process, surrounded by dimension tables that hold the descriptive context (the who, what, where, and when). Figure~\ref{fig:ch1-star} shows the canonical shape. A snowflake schema normalizes those dimensions further. The transformation logic that populates these schemas is codified separately as a disciplined extract--transform--load (ETL) process \cite{kimball2004etl, vassiliadis2009}.
+The unit of design is the star schema: a central fact table recording the measurements of a business process, surrounded by dimension tables that hold the descriptive context (the who, what, where, and when). Figure~\ref{fig:ch1-star} shows the canonical shape. A snowflake schema normalizes those dimensions further. The transformation logic that populates these schemas is codified separately as a disciplined extract--transform--load (ETL) process \parencite{kimball2004etl, vassiliadis2009}.
 
 \begin{figure}[H]
 \centering
@@ -129,13 +129,13 @@ The unit of design is the star schema: a central fact table recording the measur
   \draw[->] (d1) -- (f); \draw[->] (d2) -- (f);
   \draw[->] (d3) -- (f); \draw[->] (d4) -- (f);
 \end{tikzpicture}
-\caption{A Kimball star schema: one fact table surrounded by conformed dimensions. \textit{Author-generated, after \cite{kimball2013}.}}
+\caption{A Kimball star schema: one fact table surrounded by conformed dimensions. \textit{Author-generated, after \parencite{kimball2013}.}}
 \label{fig:ch1-star}
 \end{figure}
 
-Two design instruments organize the dimensional warehouse. The first is the \textit{grain}: the precise level of detail one fact-table row represents (one sale line, one daily balance), declared before any measure or dimension is attached. The second is the \textit{bus matrix}: a grid of business processes against shared dimensions that plans, in advance, which dimensions will be conformed across stars \cite{kimball2013}. Integration across processes is achieved through these \textit{conformed dimensions} --- dimensions shared verbatim across multiple stars, so that a ``customer'' means the same thing in the sales star and the support star. The bus matrix is what lets the warehouse grow process by process while staying integrated, but it also fixes the conformed dimensions early, which is why changing one later is expensive.
+Two design instruments organize the dimensional warehouse. The first is the \textit{grain}: the precise level of detail one fact-table row represents (one sale line, one daily balance), declared before any measure or dimension is attached. The second is the \textit{bus matrix}: a grid of business processes against shared dimensions that plans, in advance, which dimensions will be conformed across stars \parencite{kimball2013}. Integration across processes is achieved through these \textit{conformed dimensions} --- dimensions shared verbatim across multiple stars, so that a ``customer'' means the same thing in the sales star and the support star. The bus matrix is what lets the warehouse grow process by process while staying integrated, but it also fixes the conformed dimensions early, which is why changing one later is expensive.
 
-History in the dimensional model is handled by slowly changing dimension (SCD) techniques. A Type~1 change overwrites the old value; a Type~2 change inserts a new dimension row and preserves the prior one; a Type~3 change keeps a limited number of prior values in additional columns \cite{kimball2013}. The designer chooses the SCD type per attribute, in advance, according to the history the business is expected to need.
+History in the dimensional model is handled by slowly changing dimension (SCD) techniques. A Type~1 change overwrites the old value; a Type~2 change inserts a new dimension row and preserves the prior one; a Type~3 change keeps a limited number of prior values in additional columns \parencite{kimball2013}. The designer chooses the SCD type per attribute, in advance, according to the history the business is expected to need.
 
 \subsection{Assessment Against the Criteria}
 \label{subsec:ch1-kimball-assess}
@@ -145,12 +145,12 @@ The dimensional model trades structural flexibility for query simplicity and fas
 \section{Data Vault 2.0}
 \label{sec:ch1-dv2}
 
-Data Vault~2.0 was designed specifically to remove the schema rigidity the two classical paradigms share \cite{linstedt2015}. Its central claim is that structural change can be made \textit{additive rather than destructive}: a new source or relationship is absorbed by adding objects, never by altering existing ones. This section examines the decomposition that yields that property.
+Data Vault~2.0 was designed specifically to remove the schema rigidity the two classical paradigms share \parencite{linstedt2015}. Its central claim is that structural change can be made \textit{additive rather than destructive}: a new source or relationship is absorbed by adding objects, never by altering existing ones. This section examines the decomposition that yields that property.
 
 \subsection{The Hub--Link--Satellite Decomposition}
 \label{subsec:ch1-hls}
 
-Data Vault~2.0 separates an entity into three object types, each holding one kind of information \cite{linstedt2015}. Figure~\ref{fig:ch1-dv2-topology} shows the topology for a small customer--order model.
+Data Vault~2.0 separates an entity into three object types, each holding one kind of information \parencite{linstedt2015}. Figure~\ref{fig:ch1-dv2-topology} shows the topology for a small customer--order model.
 
 \begin{figure}[H]
 \centering
@@ -198,7 +198,7 @@ Data Vault~2.0 separates an entity into three object types, each holding one kin
   \node[draw=satline, fill=satfill, minimum width=0.55cm, minimum height=0.38cm] (g3) at ($(g2.west)+(4.6,0)$) {};
   \node[anchor=west, font=\footnotesize] at (g3.east) {\;Satellite --- historized context};
 \end{tikzpicture}}
-\caption{Data Vault~2.0 topology (Hub--Link--Satellite) for a customer--order model. Hubs store business keys, Links store relationships, Satellites store historized context. \textit{Author-generated, after} \cite{linstedt2015}.}
+\caption{Data Vault~2.0 topology (Hub--Link--Satellite) for a customer--order model. Hubs store business keys, Links store relationships, Satellites store historized context. \textit{Author-generated, after} \parencite{linstedt2015}.}
 \label{fig:ch1-dv2-topology}
 \end{figure}
 
@@ -208,20 +208,20 @@ Data Vault~2.0 separates an entity into three object types, each holding one kin
   \item \textbf{Satellite} --- stores the descriptive, frequently changing attributes of a Hub or a Link. Each row carries a load timestamp, and new versions are appended rather than overwritten, so the full attribute history accumulates as a by-product of the loading pattern.
 \end{itemize}
 
-\noindent Two layers govern the data \cite{varga2014}. The \textbf{Raw Vault} captures source data exactly as received, applying no business logic, and so serves as the auditable source-of-record. The \textbf{Business Vault} holds derived constructs --- computed satellites, bridge tables, interpreted rules --- isolated from the raw layer so that a change to a business rule never rewrites source history. Consumers query neither vault directly; a downstream dimensional mart reshapes the vault into the star schemas reporting tools expect \cite{kimball2013}. Figure~\ref{fig:ch1-dv2-arch} situates the Hub--Link--Satellite core within the full Data Vault~2.0 architecture, from staging through the two vault layers to the information-delivery marts.
+\noindent Two layers govern the data \parencite{linstedt2015}. The \textbf{Raw Vault} captures source data exactly as received, applying no business logic, and so serves as the auditable source-of-record. The \textbf{Business Vault} holds derived constructs --- computed satellites, bridge tables, interpreted rules --- isolated from the raw layer so that a change to a business rule never rewrites source history. Consumers query neither vault directly; a downstream dimensional mart reshapes the vault into the star schemas reporting tools expect \parencite{kimball2013}. Figure~\ref{fig:ch1-dv2-arch} situates the Hub--Link--Satellite core within the full Data Vault~2.0 architecture, from staging through the two vault layers to the information-delivery marts.
 
-\fig[0.95\textwidth]{Data Vault 2.0 Architecture.png}{The full Data Vault~2.0 architecture: staging feeds the Raw Vault, derived logic sits in the Business Vault, and information-delivery marts serve consumers. Source: adapted from \cite{linstedt2015} \textit{(industry/illustrative source)}.}{ch1-dv2-arch}
+\fig[0.95\textwidth]{Data Vault 2.0 Architecture.png}{The full Data Vault~2.0 architecture: staging feeds the Raw Vault, derived logic sits in the Business Vault, and information-delivery marts serve consumers. Source: adapted from \parencite{linstedt2015} \textit{(industry/illustrative source)}.}{ch1-dv2-arch}
 
 \subsection{Operating Principles}
 \label{subsec:ch1-dv2-principles}
 
-Four principles turn the topology into a loadable, scalable system \cite{linstedt2015}.
+Four principles turn the topology into a loadable, scalable system \parencite{linstedt2015}.
 
 \begin{itemize}[noitemsep, topsep=4pt]
   \item \textbf{Hash-key surrogates} --- business keys are hashed into fixed-length surrogate keys, so loads compute keys independently and in parallel without lookups against previously loaded data. This decouples the loading of each object and lets ingestion scale horizontally.
-  \item \textbf{Insert-only loading} --- loads only append; the model never updates or deletes a row. This removes lock contention, makes loads idempotent and restartable, and yields a complete audit trail by construction \cite{vassiliadis2009}.
-  \item \textbf{Raw / Business Vault separation} --- the raw layer stays free of business logic so it can serve as the auditable record; derived logic is quarantined in the Business Vault \cite{varga2014}.
-  \item \textbf{Downstream consumption mart} --- the vault is optimized for loading and historization, not for querying; a dimensional mart materializes the user-facing layer, accepting query-time cost in exchange for load-time agility \cite{kimball2013}.
+  \item \textbf{Insert-only loading} --- loads only append; the model never updates or deletes a row. This removes lock contention, makes loads idempotent and restartable, and yields a complete audit trail by construction \parencite{vassiliadis2009}.
+  \item \textbf{Raw / Business Vault separation} --- the raw layer stays free of business logic so it can serve as the auditable record; derived logic is quarantined in the Business Vault \parencite{linstedt2015}.
+  \item \textbf{Downstream consumption mart} --- the vault is optimized for loading and historization, not for querying; a dimensional mart materializes the user-facing layer, accepting query-time cost in exchange for load-time agility \parencite{kimball2013}.
 \end{itemize}
 
 \subsection{Assessment Against the Criteria}
@@ -247,23 +247,23 @@ Historization & \textbf{Strong} & Insert-only loading retains complete, timestam
 Change-propagation coupling & \textbf{Strong} & Separation of keys, relationships, and context confines the blast radius of change. \\
 \hline
 \end{tabularx}
-\caption{Data Vault~2.0 assessed against the five structural-scalability criteria. \textit{Author assessment, grounded in \cite{linstedt2015, varga2014}.}}
+\caption{Data Vault~2.0 assessed against the five structural-scalability criteria. \textit{Author assessment, grounded in \parencite{linstedt2015}.}}
 \label{tab:dv2-structural-assessment}
 \end{table}
 
 \subsection{Documented Drawbacks}
 \label{subsec:ch1-dv2-drawbacks}
 
-The separation that buys structural agility imposes two well-documented costs. The first is implementation complexity: modeling an entity across Hubs, Links, and Satellites multiplies the number of objects, and getting the decomposition right demands scarce skill. Adoption surveys report the skills requirement and implementation complexity as the leading barriers to Data Vault adoption \cite{analyticscreator2025} \textit{(industry source; not peer-reviewed)}. The second is query performance: reconstructing a single business view means joining a Hub to its Links and Satellites, so analytical queries become join-heavy and slow on the vault itself \cite{analyticscreator2025}. The downstream mart exists precisely to absorb this cost, which is why vault data is never user-ready on its own. These costs are real, but they fall on query and build effort, not on structural scalability --- the property this chapter compares. The standard is also a living one: recent work removes maintenance-heavy satellite updates and pushes staging onto a data lake before populating the vault \cite{giebler2019dv}.
+The separation that buys structural agility imposes two well-documented costs. The first is implementation complexity: modeling an entity across Hubs, Links, and Satellites multiplies the number of objects, and getting the decomposition right demands scarce skill. Adoption surveys report the skills requirement and implementation complexity as the leading barriers to Data Vault adoption \parencite{analyticscreator2025} \textit{(industry source; not peer-reviewed)}. The second is query performance: reconstructing a single business view means joining a Hub to its Links and Satellites, so analytical queries become join-heavy and slow on the vault itself \parencite{analyticscreator2025}. The downstream mart exists precisely to absorb this cost, which is why vault data is never user-ready on its own. These costs are real, but they fall on query and build effort, not on structural scalability --- the property this chapter compares. The standard is also a living one: recent work removes maintenance-heavy satellite updates and pushes staging onto a data lake before populating the vault \parencite{giebler2019dv}.
 
 \section{Modern Modeling Variants}
 \label{sec:ch1-variants}
 
 Two further approaches refine the structural question rather than answer a new one, and both are worth positioning briefly.
 
-\textbf{Anchor modeling} pushes the additive principle further than Data Vault. It decomposes data into anchors (entities), attributes, ties (relationships), and knots (shared enumerations), each in its own table, so that every structural change is an addition and the model is fully normalized to the sixth normal form \cite{ronnback2010anchor}. The peer-reviewed account demonstrates agile evolution in changing environments, at the cost of an even larger object count and heavier reliance on query-time reconstruction than Data Vault. Anchor modeling is best read as the structural-flexibility limit of the same family Data Vault belongs to.
+\textbf{Anchor modeling} pushes the additive principle further than Data Vault. It decomposes data into anchors (entities), attributes, ties (relationships), and knots (shared enumerations), each in its own table, so that every structural change is an addition and the model is fully normalized to the sixth normal form \parencite{ronnback2010anchor}. The peer-reviewed account demonstrates agile evolution in changing environments, at the cost of an even larger object count and heavier reliance on query-time reconstruction than Data Vault. Anchor modeling is best read as the structural-flexibility limit of the same family Data Vault belongs to.
 
-\textbf{Data mesh} reframes the problem organizationally rather than structurally. It distributes ownership of data to the domains that produce it, treating each domain's data as a product with its own model and contract, instead of integrating everything into one central schema \cite{dehghani2022mesh} \textit{(industry source; not peer-reviewed)}. Data mesh does not prescribe a table-level modeling discipline --- a domain may use Kimball, Data Vault, or another approach internally --- so it is orthogonal to the comparison here: it changes \textit{who owns} the structure, not \textit{how} a given store absorbs change. It is included to mark the boundary of the survey, not as a fourth modeling paradigm.
+\textbf{Data mesh} reframes the problem organizationally rather than structurally. It distributes ownership of data to the domains that produce it, treating each domain's data as a product with its own model and contract, instead of integrating everything into one central schema \parencite{dehghani2022mesh} \textit{(industry source; not peer-reviewed)}. Data mesh does not prescribe a table-level modeling discipline --- a domain may use Kimball, Data Vault, or another approach internally --- so it is orthogonal to the comparison here: it changes \textit{who owns} the structure, not \textit{how} a given store absorbs change. It is included to mark the boundary of the survey, not as a fourth modeling paradigm.
 
 \section{Comparative Analysis}
 \label{sec:ch1-comparison}
@@ -290,7 +290,7 @@ Historization & Partial & Partial & \textbf{Strong} & \textbf{Strong} \\
 Change-propagation coupling & Weak & Partial & \textbf{Strong} & \textbf{Strong} \\
 \hline
 \end{tabularx}
-\caption{The four modeling approaches assessed against the five structural-scalability criteria. Scores are author assessments grounded in \cite{inmon2005, kimball2013, linstedt2015, ronnback2010anchor}; they are ordinal, not measured. \textit{Author-generated.}}
+\caption{The four modeling approaches assessed against the five structural-scalability criteria. Scores are author assessments grounded in \parencite{inmon2005, kimball2013, linstedt2015, ronnback2010anchor}; they are ordinal, not measured. \textit{Author-generated.}}
 \label{tab:ch1-comparison}
 \end{table}
 
@@ -318,7 +318,7 @@ Data Vault 2.0 & Add one Satellite to the existing customer Hub; load it insert-
 Anchor & Add one attribute table tied to the customer anchor. Existing tables untouched. & Narrow \\
 \hline
 \end{tabularx}
-\caption{Tracing a single structural change --- absorbing a new customer attribute --- through each modeling approach. \textit{Author-generated, grounded in \cite{inmon2005, kimball2013, linstedt2015, ronnback2010anchor}.}}
+\caption{Tracing a single structural change --- absorbing a new customer attribute --- through each modeling approach. \textit{Author-generated, grounded in \parencite{inmon2005, kimball2013, linstedt2015, ronnback2010anchor}.}}
 \label{tab:ch1-tracing}
 \end{table}
 
@@ -330,8 +330,8 @@ The complementarity is not free. The additive family pays for its structural fle
 \label{sec:ch1-conclusion}
 \addcontentsline{toc}{section}{Conclusion}
 
-Read against the five criteria, the literature supports a clear conclusion. The classical paradigms --- Inmon and Kimball --- were engineered for a stable analytical perimeter and a schema fixed at design time; both absorb structural change poorly, because the very features that deliver enterprise consistency (a normalized core, conformed dimensions) are shared surfaces through which change propagates \cite{inmon2005, kimball2013, golfarelli2009}. The additive family --- Data Vault~2.0 and, at its limit, Anchor modeling --- was designed to remove exactly that rigidity, and on the criteria that capture the cost of change it is the strongest available approach: source integration, schema evolution, historization, and change-propagation coupling are all handled additively, by adding objects rather than altering them \cite{linstedt2015, ronnback2010anchor}.
+Read against the five criteria, the literature supports a clear conclusion. The classical paradigms --- Inmon and Kimball --- were engineered for a stable analytical perimeter and a schema fixed at design time; both absorb structural change poorly, because the very features that deliver enterprise consistency (a normalized core, conformed dimensions) are shared surfaces through which change propagates \parencite{inmon2005, kimball2013, golfarelli2009}. The additive family --- Data Vault~2.0 and, at its limit, Anchor modeling --- was designed to remove exactly that rigidity, and on the criteria that capture the cost of change it is the strongest available approach: source integration, schema evolution, historization, and change-propagation coupling are all handled additively, by adding objects rather than altering them \parencite{linstedt2015, ronnback2010anchor}.
 
-Among these, Data Vault~2.0 is the approach the literature treats as the practical reference point for structural scalability: it is more widely documented and adopted than Anchor modeling, and it pairs strong structural properties with an explicit governance model and a clear consumption path \cite{linstedt2015, giebler2019dv}. Its costs --- join-heavy queries and implementation complexity --- are real but fall outside structural scalability proper, landing instead on query performance and build effort. Data Vault~2.0 best addresses structural scalability among warehouse modeling approaches, and the thesis carries that finding forward.
+Among these, Data Vault~2.0 is the approach the literature treats as the practical reference point for structural scalability: it is more widely documented and adopted than Anchor modeling, and it pairs strong structural properties with an explicit governance model and a clear consumption path \parencite{linstedt2015, giebler2019dv}. Its costs --- join-heavy queries and implementation complexity --- are real but fall outside structural scalability proper, landing instead on query performance and build effort. Data Vault~2.0 best addresses structural scalability among warehouse modeling approaches, and the thesis carries that finding forward.
 
 What none of these modeling approaches addresses is the second axis of the problem: how far the architecture can progress in analytical capability, from reporting through prediction. Every approach surveyed here stops at descriptive and diagnostic analysis, because warehouse modeling governs structure, not analytics. That second axis --- analytical scalability --- is the subject of Chapter~2.

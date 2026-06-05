@@ -11,16 +11,16 @@ The object of study shifts accordingly. Where Chapter~1 surveyed ways of modelin
 \section{The Analytical Maturity Spectrum}
 \label{sec:ch2-maturity}
 
-Analytical capability progresses through four levels, and each imposes a sharper architectural demand than the last \cite{gartner2012ascendancy} \textit{(industry source; not peer-reviewed)}:
+Analytical capability progresses through four levels, and each imposes a sharper architectural demand than the last \parencite{gartner2012ascendancy} \textit{(industry source; not peer-reviewed)}:
 
 \begin{itemize}[noitemsep, topsep=4pt]
   \item \textbf{Descriptive} --- \textit{what happened?} Aggregation and reporting over historical data.
   \item \textbf{Diagnostic} --- \textit{why did it happen?} Drill-down and correlation.
-  \item \textbf{Predictive} --- \textit{what will happen?} Statistical and machine-learning models over engineered features \cite{jordan2015}.
+  \item \textbf{Predictive} --- \textit{what will happen?} Statistical and machine-learning models over engineered features \parencite{jordan2015}.
   \item \textbf{Prescriptive} --- \textit{what should be done?} Recommendation and optimization inside a feedback loop.
 \end{itemize}
 
-\noindent The requirement rises steeply across these steps. Descriptive and diagnostic analysis are served by the data warehouse and OLAP. Predictive analysis requires feature pipelines and a model-training capability grounded in statistical learning \cite{jordan2015}. Prescriptive analysis requires a closed feedback loop, model governance, and data fresh enough to act on; where decisions run over streaming data it also requires online learning over evolving distributions \cite{bifet2018}. The higher levels are not extensions of reporting --- they demand a different pipeline shape. Figure~\ref{fig:ch2-maturity-staircase} renders the spectrum as a rising staircase of architectural demand.
+\noindent The requirement rises steeply across these steps. Descriptive and diagnostic analysis are served by the data warehouse and OLAP. Predictive analysis requires feature pipelines and a model-training capability grounded in statistical learning \parencite{jordan2015}. Prescriptive analysis requires a closed feedback loop, model governance, and data fresh enough to act on; where decisions run over streaming data it also requires online learning over evolving distributions \parencite{bifet2018}. The higher levels are not extensions of reporting --- they demand a different pipeline shape. Figure~\ref{fig:ch2-maturity-staircase} renders the spectrum as a rising staircase of architectural demand.
 
 \begin{figure}[H]
 \centering
@@ -47,13 +47,13 @@ Analytical capability progresses through four levels, and each imposes a sharper
   \node[anchor=north, font=\footnotesize, text=black!70] at (3.2,-1.45) {where most organizations stall};
   \node[font=\footnotesize, text=black!55] at (11.7,-1.95) {analytical maturity $\longrightarrow$};
 \end{tikzpicture}}
-\caption{Analytical maturity as rising architectural demand. The first two levels (grey) are served by the classical warehouse; the predictive and prescriptive levels (blue) require a different pipeline shape. The dashed line marks where the architecture, not just the query, must change. \textit{Author-generated, after \cite{gartner2012ascendancy}.}}
+\caption{Analytical maturity as rising architectural demand. The first two levels (grey) are served by the classical warehouse; the predictive and prescriptive levels (blue) require a different pipeline shape. The dashed line marks where the architecture, not just the query, must change. \textit{Author-generated, after \parencite{gartner2012ascendancy}.}}
 \label{fig:ch2-maturity-staircase}
 \end{figure}
 
 The decisive feature of the spectrum is the discontinuity between its lower and upper halves. The jump from diagnostic to predictive is not a harder query against the same warehouse; it is a change in what the pipeline must contain. Descriptive and diagnostic work consume aggregated, modeled data and return answers about the past. Predictive and prescriptive work consume granular, feature-engineered data, run iterative training, and return models that must be served, monitored, and retrained. The warehouse was built for the former and has no place to put the latter, which is why advanced analytics has historically been grafted on through a separate machine-learning stack rather than served from the decision pipeline itself.
 
-The empirical reality is that most organizations remain at the descriptive and diagnostic levels: industry surveys report that the large majority have not reached transformational analytics maturity \cite{gartner2018maturity} \textit{(industry source; not peer-reviewed)}. A peer-reviewed review of maturity models adds a caution: the consulting models in common use lack theoretical grounding, so maturity is often asserted without a rigorous instrument \cite{dataanalyticsmaturity2024}. The implication is structural, not incremental. Reaching the higher levels requires the pipeline to be designed for native analytical capability from the outset. That requirement is what \textit{analytical scalability} names.
+The empirical reality is that most organizations remain at the descriptive and diagnostic levels: industry surveys report that the large majority have not reached transformational analytics maturity \parencite{gartner2018maturity} \textit{(industry source; not peer-reviewed)}. A peer-reviewed review of maturity models adds a caution: the consulting models in common use lack theoretical grounding, so maturity is often asserted without a rigorous instrument \parencite{dataanalyticsmaturity2024}. The implication is structural, not incremental. Reaching the higher levels requires the pipeline to be designed for native analytical capability from the outset. That requirement is what \textit{analytical scalability} names.
 
 \begin{quote}
 \textbf{Analytical scalability} (as used here): the capacity of an architecture to progress along the maturity spectrum --- descriptive toward prescriptive --- with advanced capability integrated natively in the decision pipeline rather than bolted on downstream.
@@ -74,11 +74,11 @@ As in Chapter~1, the comparison is fixed against five criteria, each a recurring
 \textcolor{white}{\textbf{Criterion}} &
 \textcolor{white}{\textbf{What it measures}} \\
 \hline
-Maturity reach & The highest maturity level the architecture supports natively, from descriptive through prescriptive \cite{gartner2012ascendancy}. \\
-Native model integration & The degree to which machine-learning models are first-class citizens of the pipeline rather than external appendages \cite{armbrust2021, kreuzberger2023}. \\
-Data readiness & The freshness, trust, and feature availability of data at the point of analytical consumption \cite{harby2024}. \\
-Workload plurality & The capacity to serve business-intelligence and machine-learning workloads from one governed data layer without duplication \cite{armbrust2021}. \\
-Lifecycle support & The support for model retraining, feedback loops, and model governance inside the pipeline \cite{kreuzberger2023, feedback2025}. \\
+Maturity reach & The highest maturity level the architecture supports natively, from descriptive through prescriptive \parencite{gartner2012ascendancy}. \\
+Native model integration & The degree to which machine-learning models are first-class citizens of the pipeline rather than external appendages \parencite{armbrust2021, kreuzberger2023}. \\
+Data readiness & The freshness, trust, and feature availability of data at the point of analytical consumption \parencite{harby2024}. \\
+Workload plurality & The capacity to serve business-intelligence and machine-learning workloads from one governed data layer without duplication \parencite{armbrust2021}. \\
+Lifecycle support & The support for model retraining, feedback loops, and model governance inside the pipeline \parencite{kreuzberger2023, feedback2025}. \\
 \hline
 \end{tabularx}
 \caption{Five criteria for comparing analytical scalability, drawn from the literature on modern analytical architectures. \textit{Author-generated.}}
@@ -87,12 +87,34 @@ Lifecycle support & The support for model retraining, feedback loops, and model 
 
 The five architectures surveyed below are assessed against these criteria at the close of each section, and consolidated in Section~\ref{sec:ch2-comparison}. Figure~\ref{fig:ch2-arch-evolution} situates them historically: each modern architecture relaxes a specific limit of the classical warehouse.
 
-\fig[0.98\textwidth]{fig_arch_evolution.png}{Data architecture evolution, from the classical warehouse to the Lakehouse. Each transition relaxes one constraint; the medallion pattern is an implementation discipline within the Lakehouse, not a separate peer architecture. \textit{Author-generated.}}{ch2-arch-evolution}
+\begin{figure}[H]
+\centering
+\resizebox{\linewidth}{!}{%
+\begin{tikzpicture}[
+    >=stealth, font=\footnotesize,
+    stage/.style={rectangle, rounded corners=3pt, draw=black, align=center,
+                  minimum width=3.5cm, minimum height=2.7cm, inner sep=4pt}
+  ]
+  \definecolor{stgA}{RGB}{226,226,226}
+  \definecolor{stgB}{RGB}{197,224,247}
+  \definecolor{stgC}{RGB}{255,224,178}
+  \definecolor{stgD}{RGB}{200,235,205}
+  \node[stage, fill=stgA] (a) {\textbf{1990s}\\[3pt]\textbf{Traditional DWH}\\[2pt]Inmon / Kimball\\[5pt]\scriptsize Fixed schema;\\\scriptsize BI \& reporting only};
+  \node[stage, fill=stgB, right=1.4cm of a] (b) {\textbf{2000s}\\[3pt]\textbf{Data Lake}\\[2pt]open object storage\\[5pt]\scriptsize Schema-on-read;\\\scriptsize ML-ready but ungoverned};
+  \node[stage, fill=stgC, right=1.4cm of b] (c) {\textbf{2010s}\\[3pt]\textbf{Lambda / Kappa}\\[2pt]streaming pipelines\\[5pt]\scriptsize Fresh data;\\\scriptsize velocity, not modeling};
+  \node[stage, fill=stgD, right=1.4cm of c] (d) {\textbf{2020s}\\[3pt]\textbf{Lakehouse / Delta}\\[2pt]open table formats\\[5pt]\scriptsize ACID + open formats;\\\scriptsize unified BI \& ML};
+  \draw[->, thick] (a) -- (b);
+  \draw[->, thick] (b) -- (c);
+  \draw[->, thick] (c) -- (d);
+\end{tikzpicture}}
+\caption{Evolution of data architectures, 1990s--2020s: from the traditional warehouse through the data lake and the streaming designs to the Lakehouse. Each stage relaxes a limit of its predecessor; the medallion pattern is an implementation discipline within the Lakehouse, not a separate peer architecture. \textit{Author-generated.}}
+\label{fig:ch2-arch-evolution}
+\end{figure}
 
 \section{Lambda Architecture}
 \label{sec:ch2-lambda}
 
-The Lambda architecture addresses the trade-off between latency and accuracy by running two parallel pipelines over the same incoming data \cite{marz2015} \textit{(industry source; not peer-reviewed)}. Figure~\ref{fig:ch2-lambda} shows the arrangement.
+The Lambda architecture addresses the trade-off between latency and accuracy by running two parallel pipelines over the same incoming data \parencite{marz2015} \textit{(industry source; not peer-reviewed)}. Figure~\ref{fig:ch2-lambda} shows the arrangement.
 
 \begin{figure}[H]
 \centering
@@ -114,18 +136,18 @@ The Lambda architecture addresses the trade-off between latency and accuracy by 
   \draw[->] (batch) -- (serve); \draw[->] (speed) -- (serve);
   \draw[->] (serve) -- (q);
 \end{tikzpicture}
-\caption{Lambda architecture: parallel batch and speed layers merged at serving time. \textit{Author-generated, after \cite{marz2015}.}}
+\caption{Lambda architecture: parallel batch and speed layers merged at serving time. \textit{Author-generated, after \parencite{marz2015}.}}
 \label{fig:ch2-lambda}
 \end{figure}
 
-The \textit{batch layer} recomputes accurate views over an immutable master dataset; the \textit{speed layer} serves low-latency approximate results over recent data; the \textit{serving layer} merges the two so a query sees both \cite{marz2015}. The design rests on a deliberate principle: the master dataset is immutable and append-only, so any view can be recomputed from scratch. This makes the system fault-tolerant against human error --- a bad transformation can be corrected by reprocessing, because the raw record was never overwritten. The design delivers both freshness and accuracy, which is why it was widely adopted for early large-scale analytics.
+The \textit{batch layer} recomputes accurate views over an immutable master dataset; the \textit{speed layer} serves low-latency approximate results over recent data; the \textit{serving layer} merges the two so a query sees both \parencite{marz2015}. The design rests on a deliberate principle: the master dataset is immutable and append-only, so any view can be recomputed from scratch. This makes the system fault-tolerant against human error --- a bad transformation can be corrected by reprocessing, because the raw record was never overwritten. The design delivers both freshness and accuracy, which is why it was widely adopted for early large-scale analytics.
 
 Its cost is duplication: the same business logic is implemented and maintained twice, once in batch and once in streaming code, on different engines. Lambda relieves \textit{velocity} pressure and supports analytics on fresh data, but it says nothing about how models are integrated or governed --- prediction is still built on top of the serving layer, not inside the pipeline. On the criteria, Lambda scores well on data readiness (freshness) but only partially on maturity reach and native model integration, and the dual code path weakens lifecycle support.
 
 \section{Kappa Architecture}
 \label{sec:ch2-kappa}
 
-The Kappa architecture removes Lambda's duplication by treating \textit{all} processing as stream processing over a single replayable log \cite{kreps2014} \textit{(industry source; not peer-reviewed)}. Figure~\ref{fig:ch2-kappa} shows the simplification.
+The Kappa architecture removes Lambda's duplication by treating \textit{all} processing as stream processing over a single replayable log \parencite{kreps2014} \textit{(industry source; not peer-reviewed)}. Figure~\ref{fig:ch2-kappa} shows the simplification.
 
 \begin{figure}[H]
 \centering
@@ -145,11 +167,11 @@ The Kappa architecture removes Lambda's duplication by treating \textit{all} pro
   \draw[->] (src) -- (log); \draw[->] (log) -- (proc); \draw[->] (proc) -- (serve);
   \draw[->] (log.south) to[out=-90,in=-90] node[below, font=\scriptsize]{replay for reprocessing} (proc.south);
 \end{tikzpicture}
-\caption{Kappa architecture: a single stream-processing path; history is reprocessed by replaying the log. \textit{Author-generated, after \cite{kreps2014}.}}
+\caption{Kappa architecture: a single stream-processing path; history is reprocessed by replaying the log. \textit{Author-generated, after \parencite{kreps2014}.}}
 \label{fig:ch2-kappa}
 \end{figure}
 
-A single code path handles both real-time and historical computation, and history is reprocessed by replaying the log rather than maintaining a separate batch layer \cite{kreps2014}. Kappa is simpler to operate than Lambda and is a natural fit where the workload is genuinely stream-shaped. Like Lambda, however, it is a \textit{processing} architecture: it assumes the processing logic changes, not the source schema, and it provides no native discipline for model integration or governance. Its analytical profile mirrors Lambda's --- strong on freshness, partial on maturity reach and native integration --- with better lifecycle support owing to the single code path. Table~\ref{tab:lambda-kappa} pairs the two designs directly.
+A single code path handles both real-time and historical computation, and history is reprocessed by replaying the log rather than maintaining a separate batch layer \parencite{kreps2014}. Kappa is simpler to operate than Lambda and is a natural fit where the workload is genuinely stream-shaped. Like Lambda, however, it is a \textit{processing} architecture: it assumes the processing logic changes, not the source schema, and it provides no native discipline for model integration or governance. Its analytical profile mirrors Lambda's --- strong on freshness, partial on maturity reach and native integration --- with better lifecycle support owing to the single code path. Table~\ref{tab:lambda-kappa} pairs the two designs directly.
 
 \begin{table}[H]
 \centering
@@ -169,33 +191,64 @@ Best fit & Mixed batch and real-time needs & Genuinely stream-shaped workloads \
 Main cost & Maintaining two implementations & Replay cost over long histories \\
 \hline
 \end{tabularx}
-\caption{Lambda versus Kappa: the trade-off is duplication against replay. \textit{Author-generated, after \cite{marz2015, kreps2014}.}}
+\caption{Lambda versus Kappa: the trade-off is duplication against replay. \textit{Author-generated, after \parencite{marz2015, kreps2014}.}}
 \label{tab:lambda-kappa}
 \end{table}
 
 \section{The Data Lake}
 \label{sec:ch2-lake}
 
-The data lake shifted storage from schema-on-write to schema-on-read. It accepts raw data of any shape into cheap object storage and defers schema interpretation to query time \cite{nambiar2022}. This removed the ingestion bottleneck of the classical warehouse: a new source could land immediately, without a pre-agreed schema, and machine-learning workloads could read the raw files directly.
+The data lake shifted storage from schema-on-write to schema-on-read. It accepts raw data of any shape into cheap object storage and defers schema interpretation to query time \parencite{nambiar2022}. This removed the ingestion bottleneck of the classical warehouse: a new source could land immediately, without a pre-agreed schema, and machine-learning workloads could read the raw files directly.
 
 The lake's strength on the analytical axis is \textit{workload plurality} and \textit{maturity reach}: by storing raw data openly, it lets data-science tools train models on the same store that feeds reporting, in principle reaching the predictive level. Open file formats also decouple storage from compute, so multiple engines --- SQL, Spark, Python --- can read the same data without copying it into proprietary stores. This is what made the lake attractive for machine learning, where data scientists need raw, granular data rather than the pre-aggregated views a warehouse exposes.
 
-Its weakness is \textit{data readiness}, and the weakness is structural rather than incidental. The early data lake lacked three guarantees the warehouse had always provided: transactional semantics, so concurrent writes could corrupt a partial read; schema enforcement, so a malformed file could silently poison a table; and governance, so no catalog recorded what a dataset meant or where it came from. Without them, a lake accumulates files faster than it documents them and degrades into a ``data swamp'' of untrusted, undocumented data \cite{nambiar2022, harby2024}. Metadata catalogs and data-quality tooling were bolted on to mitigate this, but they remained external to the storage layer rather than enforced by it. The consequence for analytical scalability is decisive: high analytical potential was rarely realized, because the data feeding the models could not be trusted. The lake made advanced analytics \textit{possible} but not \textit{dependable}, and that gap between possibility and dependability is exactly what the Lakehouse set out to close.
+Its weakness is \textit{data readiness}, and the weakness is structural rather than incidental. The early data lake lacked three guarantees the warehouse had always provided: transactional semantics, so concurrent writes could corrupt a partial read; schema enforcement, so a malformed file could silently poison a table; and governance, so no catalog recorded what a dataset meant or where it came from. Without them, a lake accumulates files faster than it documents them and degrades into a ``data swamp'' of untrusted, undocumented data \parencite{nambiar2022, harby2024}. Metadata catalogs and data-quality tooling were bolted on to mitigate this, but they remained external to the storage layer rather than enforced by it. The consequence for analytical scalability is decisive: high analytical potential was rarely realized, because the data feeding the models could not be trusted. The lake made advanced analytics \textit{possible} but not \textit{dependable}, and that gap between possibility and dependability is exactly what the Lakehouse set out to close.
 
 \section{The Lakehouse}
 \label{sec:ch2-lakehouse}
 
-The Lakehouse was designed to keep the lake's openness while restoring the warehouse's reliability \cite{armbrust2021}. It layers ACID table semantics and a metadata layer over open columnar files such as Parquet and ORC, so that one governed store serves both business intelligence and machine learning. The name states the ambition: the reliability and performance of a warehouse on the open, low-cost storage of a lake. Rather than copying data from a lake into a separate warehouse for BI --- the two-tier architecture that dominated the 2010s --- the Lakehouse adds the missing guarantees directly to the lake, eliminating the copy and the drift between the two tiers \cite{armbrust2021, harby2024}.
+The Lakehouse was designed to keep the lake's openness while restoring the warehouse's reliability \parencite{armbrust2021}. It layers ACID table semantics and a metadata layer over open columnar files such as Parquet and ORC, so that one governed store serves both business intelligence and machine learning. The name states the ambition: the reliability and performance of a warehouse on the open, low-cost storage of a lake. Rather than copying data from a lake into a separate warehouse for BI --- the two-tier architecture that dominated the 2010s --- the Lakehouse adds the missing guarantees directly to the lake, eliminating the copy and the drift between the two tiers \parencite{armbrust2021, harby2024}. Figure~\ref{fig:ch2-lakehouse} shows the layered arrangement.
+
+\begin{figure}[H]
+\centering
+\resizebox{0.92\linewidth}{!}{%
+\begin{tikzpicture}[
+    >=stealth, font=\footnotesize,
+    band/.style={rectangle, draw=black, align=center, minimum width=12cm, minimum height=1.1cm, inner sep=4pt},
+    eng/.style={rectangle, rounded corners=3pt, draw=black, align=center, minimum width=3.6cm, minimum height=1.0cm, inner sep=3pt}
+  ]
+  \definecolor{cGov}{RGB}{255,224,178}
+  \definecolor{cEng}{RGB}{200,224,240}
+  \definecolor{cTbl}{RGB}{200,235,205}
+  \definecolor{cSto}{RGB}{226,226,226}
+
+  \node[band, fill=cGov] (gov) {\textbf{Unified governance \& catalog} --- lineage, access control, schema registry};
+  \node[eng, fill=cEng, below=0.8cm of gov.south, anchor=north, xshift=-4.2cm] (bi) {BI \& SQL};
+  \node[eng, fill=cEng, right=0.4cm of bi] (ml) {Data science \& ML};
+  \node[eng, fill=cEng, right=0.4cm of ml] (st) {Streaming};
+  \node[band, fill=cTbl, below=0.8cm of ml.south, anchor=north] (tbl) {\textbf{Open table format} --- metadata + transaction log (Delta / Iceberg / Hudi):\\ \scriptsize ACID transactions, schema enforcement \& evolution, time travel};
+  \node[band, fill=cSto, below=0.45cm of tbl.south, anchor=north] (sto) {\textbf{Open file storage} --- columnar files (Parquet, ORC) on low-cost object storage};
+
+  \draw[->, thick] (bi.south) -- (bi.south |- tbl.north);
+  \draw[->, thick] (ml.south) -- (ml.south |- tbl.north);
+  \draw[->, thick] (st.south) -- (st.south |- tbl.north);
+  \draw[<->, thick] (tbl.south) -- (sto.north);
+\end{tikzpicture}}
+\caption{Lakehouse architecture: one open store serves BI, machine learning, and streaming from the same data. An open table format adds ACID transactions, schema enforcement, and time travel over columnar files on low-cost object storage, all under a unified governance layer. \textit{Author-generated, after} \parencite{armbrust2021}.}
+\label{fig:ch2-lakehouse}
+\end{figure}
+
+The figure makes the Lakehouse's defining move visible: the engines that previously needed separate warehouse and lake tiers now read one governed store, because the table-format layer supplies the guarantees the bare lake lacked.
 
 \subsection{How the Guarantees Are Added}
 \label{subsec:ch2-mechanism}
 
-The Lakehouse does not replace the lake's files; it governs them through a transaction log. Each table is backed by ordinary columnar files plus a metadata layer that records, atomically, which files constitute the table at each version \cite{deltalake2020, armbrust2021}. A write is committed by appending to this log, not by mutating files in place, which is what delivers ACID semantics over an object store that offers none natively. Three capabilities follow directly from the log. \textit{Schema enforcement} rejects writes that violate the table's declared schema, closing the swamp failure mode of the bare lake. \textit{Schema evolution} lets the schema change in controlled, additive ways without rewriting history. \textit{Time travel} answers a query against any past version, because every version is recorded in the log. A unified catalog then governs access and lineage across all tables. These mechanisms are the technical reason the Lakehouse can serve a BI tool and an ML training job from the same files without either corrupting the other.
+The Lakehouse does not replace the lake's files; it governs them through a transaction log. Each table is backed by ordinary columnar files plus a metadata layer that records, atomically, which files constitute the table at each version \parencite{deltalake2020, armbrust2021}. A write is committed by appending to this log, not by mutating files in place, which is what delivers ACID semantics over an object store that offers none natively. Three capabilities follow directly from the log. \textit{Schema enforcement} rejects writes that violate the table's declared schema, closing the swamp failure mode of the bare lake. \textit{Schema evolution} lets the schema change in controlled, additive ways without rewriting history. \textit{Time travel} answers a query against any past version, because every version is recorded in the log. A unified catalog then governs access and lineage across all tables. These mechanisms are the technical reason the Lakehouse can serve a BI tool and an ML training job from the same files without either corrupting the other.
 
 \subsection{Open Table Formats}
 \label{subsec:ch2-otf}
 
-The enabling technology is the open table format. Delta Lake, Apache Iceberg, and Apache Hudi add a transaction log and metadata layer over the underlying files, providing ACID transactions, schema enforcement and evolution, and \textit{time travel} --- the ability to query a table as of a previous version \cite{deltalake2020, armbrust2021}. These guarantees are what turn a directory of files into a table that BI tools can trust. The three formats share this core and differ mainly in emphasis, as Table~\ref{tab:otf} summarizes. Peer-reviewed surveys identify the Lakehouse as the consolidating direction of enterprise data architecture \cite{harby2024, schneider2024, nambiar2022}.
+The enabling technology is the open table format. Delta Lake, Apache Iceberg, and Apache Hudi add a transaction log and metadata layer over the underlying files, providing ACID transactions, schema enforcement and evolution, and \textit{time travel} --- the ability to query a table as of a previous version \parencite{deltalake2020, armbrust2021}. These guarantees are what turn a directory of files into a table that BI tools can trust. The three formats share this core and differ mainly in emphasis, as Table~\ref{tab:otf} summarizes. Peer-reviewed surveys identify the Lakehouse as the consolidating direction of enterprise data architecture \parencite{harby2024, schneider2024, nambiar2022}.
 
 \begin{table}[H]
 \centering
@@ -215,7 +268,7 @@ Schema evolution & Yes & Yes (hidden partitioning) & Yes \\
 Design emphasis & Tight engine integration & Open multi-engine interoperability & Streaming upserts and incremental pulls \\
 \hline
 \end{tabularx}
-\caption{The three leading open table formats share ACID semantics, time travel, and schema evolution, differing mainly in emphasis. \textit{Author-generated, after \cite{deltalake2020, armbrust2021}.}}
+\caption{The three leading open table formats share ACID semantics, time travel, and schema evolution, differing mainly in emphasis. \textit{Author-generated, after \parencite{deltalake2020, armbrust2021}.}}
 \label{tab:otf}
 \end{table}
 
@@ -227,7 +280,7 @@ The Lakehouse scores strongly across the analytical criteria. \textbf{Maturity r
 \section{The Delta (Medallion) Architecture}
 \label{sec:ch2-delta}
 
-The Delta architecture is the dominant implementation pattern \textit{within} the Lakehouse, not a competing architecture \cite{databricks2022} \textit{(industry source; not peer-reviewed)}. It organizes the store into three progressively refined zones, the medallion pattern:
+The Delta architecture is the dominant implementation pattern \textit{within} the Lakehouse, not a competing architecture \parencite{databricks2022} \textit{(industry source; not peer-reviewed)}. It organizes the store into three progressively refined zones, the medallion pattern:
 
 \begin{itemize}[noitemsep, topsep=4pt]
   \item \textbf{Bronze} --- raw ingested data, retained as received.
@@ -256,11 +309,11 @@ The Delta architecture is the dominant implementation pattern \textit{within} th
   \node[cons, right=0.9cm of g] (c) {BI + ML};
   \draw[->] (s) -- (b); \draw[->] (b) -- (sv); \draw[->] (sv) -- (g); \draw[->] (g) -- (c);
 \end{tikzpicture}
-\caption{The Delta (medallion) architecture: data is refined through Bronze, Silver, and Gold governed layers, then served to BI and ML. \textit{Author-generated, after \cite{databricks2022}.}}
+\caption{The Delta (medallion) architecture: data is refined through Bronze, Silver, and Gold governed layers, then served to BI and ML. \textit{Author-generated, after \parencite{databricks2022}.}}
 \label{fig:ch2-medallion}
 \end{figure}
 
-\noindent The pattern maps the classical ETL/ELT pipeline \cite{vassiliadis2009} onto governed table layers, so refinement is incremental and each zone is independently queryable (Figure~\ref{fig:ch2-medallion}). Its contribution to analytical scalability is organizational: by giving raw, refined, and served data distinct governed layers, it makes the readiness of data explicit at each stage and gives model training a clean layer to consume. It inherits the Lakehouse's criteria scores and sharpens data readiness by making the refinement path auditable.
+\noindent The pattern maps the classical ETL/ELT pipeline \parencite{vassiliadis2009} onto governed table layers, so refinement is incremental and each zone is independently queryable (Figure~\ref{fig:ch2-medallion}). Its contribution to analytical scalability is organizational: by giving raw, refined, and served data distinct governed layers, it makes the readiness of data explicit at each stage and gives model training a clean layer to consume. It inherits the Lakehouse's criteria scores and sharpens data readiness by making the refinement path auditable.
 
 \section{Enabling Patterns for Native Analytics}
 \label{sec:ch2-patterns}
@@ -270,7 +323,7 @@ Three cross-cutting patterns are what let the modern architectures reach the hig
 \subsection{From ETL to ELT}
 \label{subsec:ch2-elt}
 
-The classical warehouse transforms data \emph{before} loading it (ETL), because storage was expensive and the target schema fixed in advance \cite{vassiliadis2009}. The Lakehouse inverts this: it loads raw data first and transforms it \emph{in place} (ELT), because object storage is cheap and compute can be pushed down to the data \cite{harby2024}. Table~\ref{tab:etl-vs-elt} contrasts the two.
+The classical warehouse transforms data \emph{before} loading it (ETL), because storage was expensive and the target schema fixed in advance \parencite{vassiliadis2009}. The Lakehouse inverts this: it loads raw data first and transforms it \emph{in place} (ELT), because object storage is cheap and compute can be pushed down to the data \parencite{harby2024}. Table~\ref{tab:etl-vs-elt} contrasts the two.
 
 \begin{table}[H]
 \centering
@@ -294,12 +347,12 @@ Analytical effect & Only modeled data is available & Raw data stays available fo
 \label{tab:etl-vs-elt}
 \end{table}
 
-ELT is what makes the medallion layering possible and what keeps raw data available for feature engineering: transformation becomes incremental rather than a precondition for ingestion \cite{databricks2022} \textit{(industry source; not peer-reviewed)}.
+ELT is what makes the medallion layering possible and what keeps raw data available for feature engineering: transformation becomes incremental rather than a precondition for ingestion \parencite{databricks2022} \textit{(industry source; not peer-reviewed)}.
 
 \subsection{Native Predictive Integration}
 \label{subsec:ch2-native-ml}
 
-The decisive question for analytical scalability is whether models are first-class citizens of the pipeline or external appendages \cite{armbrust2021}. In a \textbf{downstream bolt-on}, data is exported to a separate machine-learning system; governance and lineage are lost at the boundary, and the training copy drifts from the reporting data. In \textbf{native integration}, training, serving, and monitoring run on the same governed store, so one copy of the data feeds both BI and ML and lineage is preserved end to end. Native integration assembles the model lifecycle into a closed loop \cite{kreuzberger2023}, shown in Figure~\ref{fig:ch2-native-ml-loop}.
+The decisive question for analytical scalability is whether models are first-class citizens of the pipeline or external appendages \parencite{armbrust2021}. In a \textbf{downstream bolt-on}, data is exported to a separate machine-learning system; governance and lineage are lost at the boundary, and the training copy drifts from the reporting data. In \textbf{native integration}, training, serving, and monitoring run on the same governed store, so one copy of the data feeds both BI and ML and lineage is preserved end to end. Native integration assembles the model lifecycle into a closed loop \parencite{kreuzberger2023}, shown in Figure~\ref{fig:ch2-native-ml-loop}.
 
 \begin{figure}[H]
 \centering
@@ -332,16 +385,16 @@ The decisive question for analytical scalability is whether models are first-cla
   \draw[loop] (serve.north) to[out=90, in=90]
         node[above, font=\footnotesize] {outcomes + feedback} (store.north);
 \end{tikzpicture}
-\caption{Native predictive pipeline on the Lakehouse: training, serving, and monitoring on one governed store, closing the loop required for prescriptive analytics. \textit{Author-generated, after \cite{kreuzberger2023}.}}
+\caption{Native predictive pipeline on the Lakehouse: training, serving, and monitoring on one governed store, closing the loop required for prescriptive analytics. \textit{Author-generated, after \parencite{kreuzberger2023}.}}
 \label{fig:ch2-native-ml-loop}
 \end{figure}
 
-The loop has four working parts \cite{kreuzberger2023}. A \textbf{feature store} serves features consistently to training and inference, removing training--serving skew. \textbf{Model training} runs on the trusted production record rather than a stale export. \textbf{Serving} scores new data and writes predictions back into the governed lineage. \textbf{Monitoring and retraining} detect drift and trigger updates, closing the loop required for prescriptive analytics \cite{feedback2025, futurei2025}. This native arrangement is what lets a Lakehouse reach the predictive and prescriptive levels without a downstream bolt-on.
+The loop has four working parts \parencite{kreuzberger2023}. A \textbf{feature store} serves features consistently to training and inference, removing training--serving skew. \textbf{Model training} runs on the trusted production record rather than a stale export. \textbf{Serving} scores new data and writes predictions back into the governed lineage. \textbf{Monitoring and retraining} detect drift and trigger updates, closing the loop required for prescriptive analytics \parencite{feedback2025, futurei2025}. This native arrangement is what lets a Lakehouse reach the predictive and prescriptive levels without a downstream bolt-on.
 
 \subsection{Streaming and Incremental Analytics}
 \label{subsec:ch2-streaming}
 
-The third pattern keeps the pipeline fresh enough for prescriptive decisions. \textbf{Change data capture} streams row-level changes from source systems as they happen, rather than reloading whole tables \cite{kleppmann2017}. \textbf{Continuous ingestion} feeds both real-time and historical processing from one replayable stream, the Kappa pattern \cite{kreps2014} \textit{(industry source; not peer-reviewed)}. \textbf{Near-real-time scoring} lets models score records on arrival, and where distributions shift, \textbf{online learning} updates models incrementally on the stream rather than waiting for a full retrain \cite{bifet2018}. Together these mechanisms raise data readiness from periodic to continuous, which is what the highest maturity level requires.
+The third pattern keeps the pipeline fresh enough for prescriptive decisions. \textbf{Change data capture} streams row-level changes from source systems as they happen, rather than reloading whole tables \parencite{kleppmann2017}. \textbf{Continuous ingestion} feeds both real-time and historical processing from one replayable stream, the Kappa pattern \parencite{kreps2014} \textit{(industry source; not peer-reviewed)}. \textbf{Near-real-time scoring} lets models score records on arrival, and where distributions shift, \textbf{online learning} updates models incrementally on the stream rather than waiting for a full retrain \parencite{bifet2018}. Together these mechanisms raise data readiness from periodic to continuous, which is what the highest maturity level requires.
 
 \section{Comparative Analysis}
 \label{sec:ch2-comparison}
@@ -369,7 +422,7 @@ Workload plurality & Partial & Partial & \textbf{Strong} & \textbf{Strong} & \te
 Lifecycle support & Weak & Partial & Weak & \textbf{Strong} & \textbf{Strong} \\
 \hline
 \end{tabularx}
-\caption{The five modern architectures assessed against the analytical-scalability criteria. Scores are author assessments grounded in \cite{marz2015, kreps2014, nambiar2022, armbrust2021, databricks2022}; they are ordinal, not measured. \textit{Author-generated.}}
+\caption{The five modern architectures assessed against the analytical-scalability criteria. Scores are author assessments grounded in \parencite{marz2015, kreps2014, nambiar2022, armbrust2021, databricks2022}; they are ordinal, not measured. \textit{Author-generated.}}
 \label{tab:ch2-comparison}
 \end{table}
 
@@ -397,7 +450,7 @@ Lakehouse & Features, training, serving, and monitoring run on the governed stor
 Delta & As Lakehouse, with Gold-layer features and an auditable refinement path feeding training. & Native \\
 \hline
 \end{tabularx}
-\caption{Tracing one analytical demand --- a retrained daily churn model --- through each architecture. \textit{Author-generated, grounded in \cite{marz2015, kreps2014, nambiar2022, armbrust2021, databricks2022}.}}
+\caption{Tracing one analytical demand --- a retrained daily churn model --- through each architecture. \textit{Author-generated, grounded in \parencite{marz2015, kreps2014, nambiar2022, armbrust2021, databricks2022}.}}
 \label{tab:ch2-tracing}
 \end{table}
 
@@ -407,6 +460,6 @@ The trace exposes the same divide the table reports. In the streaming and lake a
 \label{sec:ch2-conclusion}
 \addcontentsline{toc}{section}{Conclusion}
 
-Read against the five criteria, the literature supports a clear conclusion. The streaming architectures solved the freshness problem but left advanced analytics outside the pipeline; the data lake opened the store to machine learning but could not make its data dependable; the Lakehouse, with its open table formats and the native model loop they enable, is the architecture that supports the full maturity spectrum on one governed store \cite{armbrust2021, harby2024, schneider2024}. The Delta (medallion) architecture is its dominant implementation pattern and sharpens data readiness by making refinement auditable \cite{databricks2022}. The Lakehouse, implemented through the Delta architecture, best addresses analytical scalability among modern architectures.
+Read against the five criteria, the literature supports a clear conclusion. The streaming architectures solved the freshness problem but left advanced analytics outside the pipeline; the data lake opened the store to machine learning but could not make its data dependable; the Lakehouse, with its open table formats and the native model loop they enable, is the architecture that supports the full maturity spectrum on one governed store, with the Delta (medallion) architecture as its dominant implementation pattern \parencite{armbrust2021, harby2024, schneider2024, databricks2022}. The Lakehouse, implemented through Delta, best addresses analytical scalability among modern architectures.
 
-One qualification carries forward. The Lakehouse delivers analytical capability and file-level trust, but the \textit{semantic} trust of the data it serves --- correct historization, stable business keys, governed lineage --- depends on a modeling discipline it does not itself provide. That discipline is exactly what Chapter~1 found in Data Vault~2.0. The two findings point at each other: the strongest structural approach and the strongest analytical architecture each supply what the other lacks. Whether the literature reports an architecture that combines them --- addressing both forms of scalability at once --- is the question of Chapter~3.
+One qualification carries forward. The Lakehouse delivers analytical capability and file-level trust, but the \textit{semantic} trust of its data --- correct historization, stable business keys, governed lineage --- depends on a modeling discipline it does not provide: exactly what Chapter~1 found in Data Vault~2.0. The strongest structural approach and the strongest analytical architecture each supply what the other lacks. Whether the literature reports an architecture that combines them is the question of Chapter~3.

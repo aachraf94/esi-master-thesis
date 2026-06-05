@@ -1,4 +1,44 @@
-% ── Annexe A ─────────────────────────────────────────────────────────────────
-\chapter{Annexe A — \todo{Title}}
+% ── Appendix A — The Snowflake Schema ────────────────────────────────────────
+\chapter{The Snowflake Schema: A Normalized Dimensional Variant}
+\label{app:snowflake}
 
-% TODO: add content
+Chapter~1 presented the Kimball star schema (Figure~\ref{fig:ch1-star}), in which a central fact table is surrounded by \emph{denormalized} dimension tables: each dimension holds all of its descriptive attributes in a single flat table. The \emph{snowflake schema} is the normalized variant of that design. Each dimension is decomposed into a hierarchy of related tables, so that repeating attribute groups are stored once and referenced by foreign keys, exactly as third normal form prescribes \parencite{kimball2013}. This appendix presents the snowflake schema as a reference, because it sits between the two poles the thesis compares --- the query-optimized denormalization of Kimball and the change-optimized normalization of Data Vault~2.0 --- and so illustrates the structural-scalability trade-off concretely.
+
+\fig[0.98\textwidth]{snowflake_schema.png}{A snowflake schema for a retail sales process. The central \texttt{Fact\_Sales} table references the \texttt{Dim\_Date}, \texttt{Dim\_Store}, and \texttt{Dim\_Product} dimensions, each of which is further normalized into sub-dimensions (for example \texttt{Dim\_Month} and \texttt{Dim\_Quarter} off \texttt{Dim\_Date}, and \texttt{Dim\_Brand} off \texttt{Dim\_Product}). \textit{Source: SqlPac, Wikimedia Commons (CC BY-SA 3.0).}}{app-snowflake}
+
+Figure~\ref{fig:app-snowflake} shows the same retail sales process modeled as a snowflake: where a star schema would store the product's brand and category as columns inside one \texttt{Dim\_Product} table, the snowflake factors them into separate \texttt{Dim\_Brand} and \texttt{Dim\_Product\_Category} tables linked by foreign keys.
+
+\section*{How Snowflaking Changes the Trade-off}
+\addcontentsline{toc}{section}{How Snowflaking Changes the Trade-off}
+
+Normalizing the dimensions buys two structural advantages and imposes one query cost. The advantages are storage efficiency --- a brand name is stored once rather than repeated on every product row --- and update integrity, since a corrected brand name propagates from a single place rather than requiring a sweep across a wide dimension table. The cost is query complexity: reconstructing a business view now requires joining the fact table to a dimension and then to its sub-dimensions, so a snowflake query carries more joins than the equivalent star query. This is the same tension, in miniature, that Chapter~1 traced between Kimball and Data Vault~2.0: normalization improves the economics of change and storage at the expense of read-time joins, and denormalization makes the opposite trade. Table~\ref{tab:app-star-snowflake} summarizes the comparison.
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.35}
+\rowcolors{2}{white}{tblrowalt}
+\begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{3.4cm}|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
+\hline
+\rowcolor{tblheader}
+\textcolor{white}{\textbf{Property}} &
+\textcolor{white}{\textbf{Star schema}} &
+\textcolor{white}{\textbf{Snowflake schema}} \\
+\hline
+Dimension form & Denormalized (one flat table) & Normalized into sub-dimensions \\
+Storage of repeated values & Repeated on every row & Stored once, referenced by key \\
+Query joins & Fewer; fact to dimension only & More; fact to dimension to sub-dimension \\
+Read performance & Faster for interactive BI & Slower; more joins per query \\
+Update integrity & Wide updates across the dimension & Localized to one small table \\
+\hline
+\end{tabularx}
+\caption{Star versus snowflake schema: the denormalization--normalization trade-off within dimensional modeling. \textit{Author-generated, after \parencite{kimball2013}.}}
+\label{tab:app-star-snowflake}
+\end{table}
+
+\section*{Relevance to the Thesis}
+\addcontentsline{toc}{section}{Relevance to the Thesis}
+
+The snowflake schema does not change the verdict of Chapter~1. Both star and snowflake remain dimensional designs built for a stable, pre-specified analytical perimeter, and both inherit the schema rigidity that the chapter identified: a structural change to a widely shared dimension still propagates to every fact and report that uses it. Snowflaking only redistributes attributes across more tables; it does not make structural change \emph{additive} in the sense that the Hub--Link--Satellite decomposition does. The schema is included here as a reference point that makes the normalization axis explicit: the same principle that Data Vault~2.0 carries to its conclusion --- store each thing once, in its own object --- appears in milder form in the snowflake, which is why practitioners sometimes describe Data Vault as occupying the far end of the normalization spectrum the star and snowflake begin.
+
+\medskip
+\noindent\footnotesize The figure is reproduced from Wikimedia Commons under the Creative Commons Attribution-ShareAlike 3.0 licence (CC BY-SA 3.0); author: SqlPac. Source: \url{https://commons.wikimedia.org/wiki/File:Snowflake-schema-example.png}.
