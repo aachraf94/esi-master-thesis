@@ -6,7 +6,7 @@
 
 This chapter surveys the principal ways of modeling a data warehouse and compares them on a single property: structural scalability, the capacity to absorb new sources, schema changes, and volume growth without disruptive re-engineering. The data warehouse remains the integrating core of decision support, and the way its schema is modeled fixes how cheaply that core can change \parencite{inmon2005, kimball2013}. The question this chapter answers is therefore narrow and concrete: when the business adds a source or revises a definition, which modeling discipline absorbs the change at the lowest structural cost?
 
-The chapter proceeds in four moves. Section~\ref{sec:ch1-dw-core} fixes the vocabulary, positions the warehouse within decision support, and defines what structural scalability denotes. Section~\ref{sec:ch1-criteria} derives five comparison criteria from the literature. Sections~\ref{sec:ch1-inmon}--\ref{sec:ch1-variants} survey the modeling approaches in turn --- the Inmon Corporate Information Factory, the Kimball dimensional model, Data Vault~2.0, and two modern variants --- describing the architecture of each and how it handles source integration, schema evolution, volume growth, and historization. Section~\ref{sec:ch1-comparison} sets the approaches side by side against the five criteria, and Section~\ref{sec:ch1-conclusion} states the verdict the literature supports.
+The chapter proceeds in four moves. Section~\ref{sec:ch1-dw-core} fixes the vocabulary, positions the warehouse within decision support, and defines what structural scalability denotes. Section~\ref{sec:ch1-criteria} derives five comparison criteria from the literature. Sections~\ref{sec:ch1-inmon}--\ref{sec:ch1-variants} survey the modeling approaches in turn --- the Inmon Corporate Information Factory, the Kimball dimensional model, Data Vault~2.0, and two modern variants --- describing the architecture of each and how it handles source integration, schema evolution, volume growth, and historization. Section~\ref{sec:ch1-comparison} sets the approaches side by side against the five criteria, and the conclusion states the verdict the literature supports.
 
 \section{The Data Warehouse at the Core of Decision Support}
 \label{sec:ch1-dw-core}
@@ -326,8 +326,7 @@ The trace makes the abstract criteria tangible. In the classical paradigms, abso
 
 The complementarity is not free. The additive family pays for its structural flexibility in query performance and implementation complexity, the two costs documented in Section~\ref{subsec:ch1-dv2-drawbacks}. The comparison therefore does not crown a universally best model; it identifies which models minimize the cost of \textit{structural change} specifically, which is the property under study.
 
-\section{Conclusion}
-\label{sec:ch1-conclusion}
+\section*{Conclusion}
 \addcontentsline{toc}{section}{Conclusion}
 
 Read against the five criteria, the literature supports a clear conclusion. The classical paradigms --- Inmon and Kimball --- were engineered for a stable analytical perimeter and a schema fixed at design time; both absorb structural change poorly, because the very features that deliver enterprise consistency (a normalized core, conformed dimensions) are shared surfaces through which change propagates \parencite{inmon2005, kimball2013, golfarelli2009}. The additive family --- Data Vault~2.0 and, at its limit, Anchor modeling --- was designed to remove exactly that rigidity, and on the criteria that capture the cost of change it is the strongest available approach: source integration, schema evolution, historization, and change-propagation coupling are all handled additively, by adding objects rather than altering them \parencite{linstedt2015, ronnback2010anchor}.
