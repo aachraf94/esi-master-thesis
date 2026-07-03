@@ -68,6 +68,8 @@ As in Chapter~1, the comparison is fixed against five criteria, each a recurring
 \centering
 \renewcommand{\arraystretch}{1.35}
 \rowcolors{2}{white}{tblrowalt}
+\caption{Five criteria for comparing analytical scalability. \textit{Author-generated.}}
+\label{tab:ch2-criteria}
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{3.6cm}|>{\raggedright\arraybackslash}X|}
 \hline
 \rowcolor{tblheader}
@@ -81,8 +83,6 @@ Workload plurality & The capacity to serve business-intelligence and machine-lea
 Lifecycle support & The support for model retraining, feedback loops, and model governance inside the pipeline \parencite{kreuzberger2023, feedback2025}. \\
 \hline
 \end{tabularx}
-\caption{Five criteria for comparing analytical scalability. \textit{Author-generated.}}
-\label{tab:ch2-criteria}
 \end{table}
 
 The five architectures surveyed below are assessed against these criteria at the close of each section, and consolidated in Section~\ref{sec:ch2-comparison}. Figure~\ref{fig:ch2-arch-evolution} situates them historically: each modern architecture relaxes a specific limit of the classical warehouse.
@@ -177,6 +177,8 @@ A single code path handles both real-time and historical computation, and histor
 \centering
 \renewcommand{\arraystretch}{1.35}
 \rowcolors{2}{white}{tblrowalt}
+\caption{Lambda versus Kappa: the trade-off is duplication against replay. \textit{Author-generated, after \parencite{marz2015, kreps2014}.}}
+\label{tab:lambda-kappa}
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{2.8cm}|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
 \hline
 \rowcolor{tblheader}
@@ -191,8 +193,6 @@ Best fit & Mixed batch and real-time needs & Genuinely stream-shaped workloads \
 Main cost & Maintaining two implementations & Replay cost over long histories \\
 \hline
 \end{tabularx}
-\caption{Lambda versus Kappa: the trade-off is duplication against replay. \textit{Author-generated, after \parencite{marz2015, kreps2014}.}}
-\label{tab:lambda-kappa}
 \end{table}
 
 \section{The Data Lake}
@@ -254,6 +254,8 @@ The enabling technology is the open table format. Delta Lake, Apache Iceberg, an
 \centering
 \renewcommand{\arraystretch}{1.35}
 \rowcolors{2}{white}{tblrowalt}
+\caption{The three leading open table formats compared. \textit{Author-generated, after \parencite{deltalake2020, armbrust2021}.}}
+\label{tab:otf}
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{2.6cm}|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
 \hline
 \rowcolor{tblheader}
@@ -268,8 +270,6 @@ Schema evolution & Yes & Yes (hidden partitioning) & Yes \\
 Design emphasis & Tight engine integration & Open multi-engine interoperability & Streaming upserts and incremental pulls \\
 \hline
 \end{tabularx}
-\caption{The three leading open table formats compared. \textit{Author-generated, after \parencite{deltalake2020, armbrust2021}.}}
-\label{tab:otf}
 \end{table}
 
 \subsection{Assessment Against the Criteria}
@@ -329,6 +329,8 @@ The classical warehouse transforms data \emph{before} loading it (ETL), because 
 \centering
 \renewcommand{\arraystretch}{1.35}
 \rowcolors{2}{white}{tblrowalt}
+\caption{ETL versus ELT in the modern data pipeline. \textit{Author-generated.}}
+\label{tab:etl-vs-elt}
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{3.0cm}|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
 \hline
 \rowcolor{tblheader}
@@ -343,8 +345,6 @@ Schema timing & Fixed before ingestion & Applied progressively (Silver, Gold) \\
 Analytical effect & Only modeled data is available & Raw data stays available for ML \\
 \hline
 \end{tabularx}
-\caption{ETL versus ELT in the modern data pipeline. \textit{Author-generated.}}
-\label{tab:etl-vs-elt}
 \end{table}
 
 ELT is what makes the medallion layering possible and what keeps raw data available for feature engineering: transformation becomes incremental rather than a precondition for ingestion \parencite{databricks2022} \textit{(industry source; not peer-reviewed)}.
@@ -405,6 +405,8 @@ Setting the five architectures against the five criteria makes the pattern expli
 \centering
 \renewcommand{\arraystretch}{1.35}
 \rowcolors{2}{white}{tblrowalt}
+\caption{The five modern architectures assessed against the analytical-scalability criteria. \textit{Author-generated.}}
+\label{tab:ch2-comparison}
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{3.3cm}|>{\centering\arraybackslash}X|>{\centering\arraybackslash}X|>{\centering\arraybackslash}X|>{\centering\arraybackslash}X|>{\centering\arraybackslash}X|}
 \hline
 \rowcolor{tblheader}
@@ -422,8 +424,6 @@ Workload plurality & Partial & Partial & \textbf{Strong} & \textbf{Strong} & \te
 Lifecycle support & Weak & Partial & Weak & \textbf{Strong} & \textbf{Strong} \\
 \hline
 \end{tabularx}
-\caption{The five modern architectures assessed against the analytical-scalability criteria. \textit{Author-generated.}}
-\label{tab:ch2-comparison}
 \end{table}
 
 Three readings stand out. First, the streaming architectures --- Lambda and Kappa --- are strong on \textit{data readiness} but only partial on the criteria that define advanced analytics: they solve velocity, not native model integration or lifecycle governance. Second, the data lake inverts that profile: it opens the door to workload plurality and high maturity but fails on data readiness, so its analytical potential is rarely dependable. Third, the Lakehouse and its Delta implementation are the only rows that score Strong across maturity reach, native integration, workload plurality, and lifecycle support; the Delta pattern further raises data readiness by making the refinement path explicit. The progression across the table is cumulative: each architecture relaxes a limit of its predecessor, and the Lakehouse consolidates the result.
@@ -437,6 +437,8 @@ As in Chapter~1, a single demand traced through each architecture makes the crit
 \centering
 \renewcommand{\arraystretch}{1.35}
 \rowcolors{2}{white}{tblrowalt}
+\caption{Tracing one analytical demand --- a retrained daily churn model --- through each architecture. \textit{Author-generated.}}
+\label{tab:ch2-tracing}
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{2.6cm}|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}p{2.3cm}|}
 \hline
 \rowcolor{tblheader}
@@ -450,8 +452,6 @@ Lakehouse & Features, training, serving, and monitoring run on the governed stor
 Delta & As Lakehouse, with Gold-layer features and an auditable refinement path feeding training. & Native \\
 \hline
 \end{tabularx}
-\caption{Tracing one analytical demand --- a retrained daily churn model --- through each architecture. \textit{Author-generated.}}
-\label{tab:ch2-tracing}
 \end{table}
 
 The trace exposes the same divide the table reports. In the streaming and lake architectures, the model lives outside the governed pipeline or on untrusted data, so it is a bolt-on whose lineage breaks at the boundary. In the Lakehouse and Delta architectures, the model is a first-class workload on the same governed store as reporting, which is what \textit{native model integration} and \textit{lifecycle support} mean in practice.

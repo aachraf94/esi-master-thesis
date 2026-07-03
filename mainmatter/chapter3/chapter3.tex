@@ -29,6 +29,8 @@ The combination is therefore practiced and documented, but the evidence base is 
 \centering
 \renewcommand{\arraystretch}{1.3}
 \rowcolors{2}{white}{tblrowalt}
+\caption{The evidence base for dual scalability: practised in industry, thinly covered in peer-reviewed work. \textit{Author-generated.}}
+\label{tab:ch3-evidence}
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4.2cm}|>{\raggedright\arraybackslash}X|}
 \hline
 \rowcolor{tblheader}
@@ -40,8 +42,6 @@ Peer-reviewed evidence & Thin; one direct study on modeling data lakes with Data
 Documented trade-offs & Acknowledged informally (join-heavy queries, dual historization, skills cost) but rarely measured. \\
 \hline
 \end{tabularx}
-\caption{The evidence base for dual scalability: practised in industry, thinly covered in peer-reviewed work. \textit{Author-generated.}}
-\label{tab:ch3-evidence}
 \end{table}
 
 Two conclusions follow from the literature, not from any position taken here. First, an architecture addressing both forms of scalability already exists in practice: Data Vault~2.0 on the Lakehouse pairs the strongest structural approach with the strongest analytical one, and the pairing is coherent because the vault becomes a governed tenant of the open store \parencite{databricks2022, giebler2019dv}. Second, the combination rests mostly on industry and vendor sources; peer-reviewed evaluation is thin, and the trade-offs it carries --- the join-heavy query cost the vault imposes on columnar storage, the overlap between satellite historization and table-version time travel, and the added skills burden --- are acknowledged but not systematically measured \parencite{schneider2024, harby2024}. The state of dual scalability is thus one of a practised pattern ahead of its evidence: widely combined by convention, not yet methodically evaluated in the academic record.

@@ -26,6 +26,8 @@ A decision support information system supplies managers with the integrated data
 \centering
 \renewcommand{\arraystretch}{1.35}
 \rowcolors{2}{white}{tblrowalt}
+\caption{Evolution of decision support paradigms. \textit{Author-generated, synthesizing \parencite{chen2012, davenport2007, nambiar2022}.}}
+\label{tab:dsis-evolution}
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{3.2cm}|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
 \hline
 \rowcolor{tblheader}
@@ -39,8 +41,6 @@ A decision support information system supplies managers with the integrated data
 2010s--present & Modern platforms (Lakehouse, cloud DW) & Full spectrum \\
 \hline
 \end{tabularx}
-\caption{Evolution of decision support paradigms. \textit{Author-generated, synthesizing \parencite{chen2012, davenport2007, nambiar2022}.}}
-\label{tab:dsis-evolution}
 \end{table}
 
 Across all four eras runs a single design assumption: that requirements can be specified before ingestion begins, so the schema can be settled at design time \parencite{golfarelli2009}. That assumption is what the modeling paradigms surveyed below encode, and it is exactly what source heterogeneity and business change now strain. When a source is added or a definition revised, an architecture built on a fixed schema must be partly rebuilt; one built to absorb change need only be extended. The difference between the two is what this chapter calls \textit{structural scalability}.
@@ -60,6 +60,8 @@ To compare modeling approaches on more than impression, the survey fixes five cr
 \centering
 \renewcommand{\arraystretch}{1.35}
 \rowcolors{2}{white}{tblrowalt}
+\caption{Five criteria for comparing structural scalability. \textit{Author-generated.}}
+\label{tab:ch1-criteria}
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{3.6cm}|>{\raggedright\arraybackslash}X|}
 \hline
 \rowcolor{tblheader}
@@ -73,8 +75,6 @@ Historization and auditability & The completeness and non-destructiveness of the
 Change-propagation coupling & The degree to which a structural change in one source or layer is isolated from downstream consumers rather than rippling through them \parencite{kleppmann2017}. \\
 \hline
 \end{tabularx}
-\caption{Five criteria for comparing structural scalability. \textit{Author-generated.}}
-\label{tab:ch1-criteria}
 \end{table}
 
 The five are not independent in practice --- a model that historizes non-destructively usually also isolates change well --- but each names a distinct failure mode, and keeping them separate lets the comparison in Section~\ref{sec:ch1-comparison} show \textit{where} an approach is strong rather than only \textit{that} it is. The sections that follow describe each approach and, at their close, assess it against these criteria.
@@ -233,6 +233,8 @@ Data Vault~2.0 scores strongly on four of the five criteria. \textbf{Source inte
 \centering
 \renewcommand{\arraystretch}{1.35}
 \rowcolors{2}{white}{tblrowalt}
+\caption{Data Vault~2.0 assessed against the five structural-scalability criteria. \textit{Author assessment, grounded in \parencite{linstedt2015}.}}
+\label{tab:dv2-structural-assessment}
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{3.8cm}|>{\raggedright\arraybackslash}p{2.0cm}|>{\raggedright\arraybackslash}X|}
 \hline
 \rowcolor{tblheader}
@@ -247,8 +249,6 @@ Historization & \textbf{Strong} & Insert-only loading retains complete, timestam
 Change-propagation coupling & \textbf{Strong} & Separation of keys, relationships, and context confines the blast radius of change. \\
 \hline
 \end{tabularx}
-\caption{Data Vault~2.0 assessed against the five structural-scalability criteria. \textit{Author assessment, grounded in \parencite{linstedt2015}.}}
-\label{tab:dv2-structural-assessment}
 \end{table}
 
 \subsection{Documented Drawbacks}
@@ -274,6 +274,8 @@ Setting the approaches side by side against the five criteria makes the pattern 
 \centering
 \renewcommand{\arraystretch}{1.35}
 \rowcolors{2}{white}{tblrowalt}
+\caption{The four modeling approaches assessed against the five structural-scalability criteria. \textit{Author-generated.}}
+\label{tab:ch1-comparison}
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{3.5cm}|>{\centering\arraybackslash}X|>{\centering\arraybackslash}X|>{\centering\arraybackslash}X|>{\centering\arraybackslash}X|}
 \hline
 \rowcolor{tblheader}
@@ -290,8 +292,6 @@ Historization & Partial & Partial & \textbf{Strong} & \textbf{Strong} \\
 Change-propagation coupling & Weak & Partial & \textbf{Strong} & \textbf{Strong} \\
 \hline
 \end{tabularx}
-\caption{The four modeling approaches assessed against the five structural-scalability criteria. \textit{Author-generated.}}
-\label{tab:ch1-comparison}
 \end{table}
 
 Two readings stand out. First, the classical paradigms cluster on the weak end of \textit{schema evolution} and \textit{change-propagation coupling} --- the two criteria that most directly capture the cost of change. Inmon's normalized core and Kimball's conformed dimensions are both shared surfaces through which change ripples, which is the price of the enterprise consistency each is built to deliver. Their strengths lie elsewhere: Inmon in integration rigor, Kimball in query-tuned volume handling. Second, the additive family --- Data Vault~2.0 and Anchor modeling --- inverts that profile, scoring Strong on exactly the change-related criteria where the classical paradigms are weak, and conceding only on volume, which both leave to the host platform.
@@ -305,6 +305,8 @@ The criteria become concrete when a single structural event is traced through ea
 \centering
 \renewcommand{\arraystretch}{1.35}
 \rowcolors{2}{white}{tblrowalt}
+\caption{Tracing a single structural change --- absorbing a new customer attribute --- through each modeling approach. \textit{Author-generated.}}
+\label{tab:ch1-tracing}
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{2.9cm}|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}p{2.4cm}|}
 \hline
 \rowcolor{tblheader}
@@ -318,8 +320,6 @@ Data Vault 2.0 & Add one Satellite to the existing customer Hub; load it insert-
 Anchor & Add one attribute table tied to the customer anchor. Existing tables untouched. & Narrow \\
 \hline
 \end{tabularx}
-\caption{Tracing a single structural change --- absorbing a new customer attribute --- through each modeling approach. \textit{Author-generated.}}
-\label{tab:ch1-tracing}
 \end{table}
 
 The trace makes the abstract criteria tangible. In the classical paradigms, absorbing the attribute means altering a structure that other consumers already depend on, so the change has to be coordinated across the marts and reports downstream. In the additive family, the same attribute is absorbed by adding one object and loading it, leaving every existing structure and consumer untouched. The difference in blast radius is precisely what the \textit{schema evolution} and \textit{change-propagation coupling} criteria measure.

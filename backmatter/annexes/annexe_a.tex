@@ -17,6 +17,8 @@ Normalizing the dimensions buys two structural advantages and imposes one query 
 \centering
 \renewcommand{\arraystretch}{1.35}
 \rowcolors{2}{white}{tblrowalt}
+\caption{Star versus snowflake schema: the denormalization--normalization trade-off within dimensional modeling. \textit{Author-generated, after \parencite{kimball2013}.}}
+\label{tab:app-star-snowflake}
 \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{3.4cm}|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
 \hline
 \rowcolor{tblheader}
@@ -31,8 +33,6 @@ Read performance & Faster for interactive BI & Slower; more joins per query \\
 Update integrity & Wide updates across the dimension & Localized to one small table \\
 \hline
 \end{tabularx}
-\caption{Star versus snowflake schema: the denormalization--normalization trade-off within dimensional modeling. \textit{Author-generated, after \parencite{kimball2013}.}}
-\label{tab:app-star-snowflake}
 \end{table}
 
 \section*{Relevance to the Thesis}
