@@ -53,6 +53,17 @@
 \printbibliography[heading=bibintoc, title={Bibliography}]
 
 \appendix
+
+% ── Appendix page numbering ──────────────────────────────────────────────────
+% Proposition 3: a single "A-" series (A-1, A-2, A-3 ...) that restarts once at
+% the appendices, so appendix pages do not continue the body's page count.
+\clearpage
+\makeatletter
+\newcommand*{\@apxpage}[1]{A-\number#1}
+\makeatother
+\pagenumbering{apxpage}
+\renewcommand{\theHpage}{apx.\arabic{page}}% keep hyperref anchors unique after the restart
+
 \include{backmatter/annexes/annexe_a}
 
 \end{document}

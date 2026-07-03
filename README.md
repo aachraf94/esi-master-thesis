@@ -95,8 +95,7 @@ esi-master-thesis/
 │
 ├── backmatter/
 │   └── annexes/
-│       ├── annexe_a.tex
-│       └── annexe_b.tex
+│       └── annexe_a.tex
 │
 ├── assets/
 │   ├── logos/                  # ESI logo and other institutional logos
@@ -124,7 +123,7 @@ General Conclusion
 Bibliography
 ─────────────────────────────────────────────────────────────────
 Annexes
-  Annexe A · Annexe B
+  Annexe A
 ```
 
 ---
