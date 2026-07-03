@@ -73,7 +73,7 @@ Historization and auditability & The completeness and non-destructiveness of the
 Change-propagation coupling & The degree to which a structural change in one source or layer is isolated from downstream consumers rather than rippling through them \parencite{kleppmann2017}. \\
 \hline
 \end{tabularx}
-\caption{Five criteria for comparing structural scalability, each drawn from the warehouse-modeling literature. \textit{Author-generated.}}
+\caption{Five criteria for comparing structural scalability. \textit{Author-generated.}}
 \label{tab:ch1-criteria}
 \end{table}
 
@@ -89,7 +89,7 @@ The Inmon approach builds the warehouse top-down as a single, enterprise-wide, n
 
 At the center of the CIF sits a normalized relational model in third normal form (3NF). Data from operational systems is cleansed and integrated into this central model, which serves as the single enterprise source of truth; subject-specific data marts are then built from it for individual consumer groups. Figure~\ref{fig:ch1-inmon} shows the layered arrangement, from source systems through the integration layer to the marts.
 
-\fig[0.9\textwidth]{inmonModel.jpg}{The Inmon Corporate Information Factory: a normalized enterprise warehouse feeding dependent data marts. Source: adapted from \parencite{inmon2005} \textit{(industry/illustrative source)}.}{ch1-inmon}
+\fig[0.9\textwidth]{inmonModel.jpg}{The Inmon Corporate Information Factory. Source: adapted from \parencite{inmon2005} \textit{(industry/illustrative source)}.}{ch1-inmon}
 
 The defining choice is normalization at the center. Because every fact is stored once in 3NF, the model enforces consistency across the enterprise: a customer or product is defined in exactly one place, and every mart inherits that definition. Integration is therefore a strength of the approach --- the central model is precisely an integration layer.
 
@@ -198,7 +198,7 @@ Data Vault~2.0 separates an entity into three object types, each holding one kin
   \node[draw=satline, fill=satfill, minimum width=0.55cm, minimum height=0.38cm] (g3) at ($(g2.west)+(4.6,0)$) {};
   \node[anchor=west, font=\footnotesize] at (g3.east) {\;Satellite --- historized context};
 \end{tikzpicture}}
-\caption{Data Vault~2.0 topology (Hub--Link--Satellite) for a customer--order model. Hubs store business keys, Links store relationships, Satellites store historized context. \textit{Author-generated, after} \parencite{linstedt2015}.}
+\caption{Data Vault~2.0 topology (Hub--Link--Satellite) for a customer--order model. \textit{Author-generated, after} \parencite{linstedt2015}.}
 \label{fig:ch1-dv2-topology}
 \end{figure}
 
@@ -210,7 +210,7 @@ Data Vault~2.0 separates an entity into three object types, each holding one kin
 
 \noindent Two layers govern the data \parencite{linstedt2015}. The \textbf{Raw Vault} captures source data exactly as received, applying no business logic, and so serves as the auditable source-of-record. The \textbf{Business Vault} holds derived constructs --- computed satellites, bridge tables, interpreted rules --- isolated from the raw layer so that a change to a business rule never rewrites source history. Consumers query neither vault directly; a downstream dimensional mart reshapes the vault into the star schemas reporting tools expect \parencite{kimball2013}. Figure~\ref{fig:ch1-dv2-arch} situates the Hub--Link--Satellite core within the full Data Vault~2.0 architecture, from staging through the two vault layers to the information-delivery marts.
 
-\fig[0.95\textwidth]{Data Vault 2.0 Architecture.png}{The full Data Vault~2.0 architecture: staging feeds the Raw Vault, derived logic sits in the Business Vault, and information-delivery marts serve consumers. Source: adapted from \parencite{linstedt2015} \textit{(industry/illustrative source)}.}{ch1-dv2-arch}
+\fig[0.95\textwidth]{Data Vault 2.0 Architecture.png}{The full Data Vault~2.0 architecture. Source: adapted from \parencite{linstedt2015} \textit{(industry/illustrative source)}.}{ch1-dv2-arch}
 
 \subsection{Operating Principles}
 \label{subsec:ch1-dv2-principles}
@@ -268,7 +268,7 @@ Two further approaches refine the structural question rather than answer a new o
 \section{Comparative Analysis}
 \label{sec:ch1-comparison}
 
-Setting the approaches side by side against the five criteria makes the pattern explicit. Table~\ref{tab:ch1-comparison} records the comparison; the scores are author assessments grounded in the cited sources, on a three-level scale (Strong / Partial / Weak) where Strong denotes the favourable end of each criterion.
+Setting the approaches side by side against the five criteria makes the pattern explicit. Table~\ref{tab:ch1-comparison} records the comparison; the scores are author assessments grounded in \parencite{inmon2005, kimball2013, linstedt2015, ronnback2010anchor}, on a three-level scale (Strong / Partial / Weak) where Strong denotes the favourable end of each criterion, and are ordinal rather than measured.
 
 \begin{table}[H]
 \centering
@@ -290,7 +290,7 @@ Historization & Partial & Partial & \textbf{Strong} & \textbf{Strong} \\
 Change-propagation coupling & Weak & Partial & \textbf{Strong} & \textbf{Strong} \\
 \hline
 \end{tabularx}
-\caption{The four modeling approaches assessed against the five structural-scalability criteria. Scores are author assessments grounded in \parencite{inmon2005, kimball2013, linstedt2015, ronnback2010anchor}; they are ordinal, not measured. \textit{Author-generated.}}
+\caption{The four modeling approaches assessed against the five structural-scalability criteria. \textit{Author-generated.}}
 \label{tab:ch1-comparison}
 \end{table}
 
@@ -299,7 +299,7 @@ Two readings stand out. First, the classical paradigms cluster on the weak end o
 \subsection{Tracing a Structural Change}
 \label{subsec:ch1-tracing}
 
-The criteria become concrete when a single structural event is traced through each model. Consider the most common one: a new source system arrives carrying a customer attribute the warehouse has never stored --- say, a loyalty tier. Table~\ref{tab:ch1-tracing} follows the change through each approach.
+The criteria become concrete when a single structural event is traced through each model. Consider the most common one: a new source system arrives carrying a customer attribute the warehouse has never stored --- say, a loyalty tier. Table~\ref{tab:ch1-tracing} follows the change through each approach, grounded in \parencite{inmon2005, kimball2013, linstedt2015, ronnback2010anchor}.
 
 \begin{table}[H]
 \centering
@@ -318,7 +318,7 @@ Data Vault 2.0 & Add one Satellite to the existing customer Hub; load it insert-
 Anchor & Add one attribute table tied to the customer anchor. Existing tables untouched. & Narrow \\
 \hline
 \end{tabularx}
-\caption{Tracing a single structural change --- absorbing a new customer attribute --- through each modeling approach. \textit{Author-generated, grounded in \parencite{inmon2005, kimball2013, linstedt2015, ronnback2010anchor}.}}
+\caption{Tracing a single structural change --- absorbing a new customer attribute --- through each modeling approach. \textit{Author-generated.}}
 \label{tab:ch1-tracing}
 \end{table}
 

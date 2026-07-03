@@ -20,7 +20,7 @@ Analytical capability progresses through four levels, and each imposes a sharper
   \item \textbf{Prescriptive} --- \textit{what should be done?} Recommendation and optimization inside a feedback loop.
 \end{itemize}
 
-\noindent The requirement rises steeply across these steps. Descriptive and diagnostic analysis are served by the data warehouse and OLAP. Predictive analysis requires feature pipelines and a model-training capability grounded in statistical learning \parencite{jordan2015}. Prescriptive analysis requires a closed feedback loop, model governance, and data fresh enough to act on; where decisions run over streaming data it also requires online learning over evolving distributions \parencite{bifet2018}. The higher levels are not extensions of reporting --- they demand a different pipeline shape. Figure~\ref{fig:ch2-maturity-staircase} renders the spectrum as a rising staircase of architectural demand.
+\noindent The requirement rises steeply across these steps. Descriptive and diagnostic analysis are served by the data warehouse and OLAP. Predictive analysis requires feature pipelines and a model-training capability grounded in statistical learning \parencite{jordan2015}. Prescriptive analysis requires a closed feedback loop, model governance, and data fresh enough to act on; where decisions run over streaming data it also requires online learning over evolving distributions \parencite{bifet2018}. The higher levels are not extensions of reporting --- they demand a different pipeline shape. Figure~\ref{fig:ch2-maturity-staircase} renders the spectrum as a rising staircase of architectural demand, with the classical warehouse serving the lower two levels and the predictive and prescriptive levels requiring a different pipeline shape.
 
 \begin{figure}[H]
 \centering
@@ -47,7 +47,7 @@ Analytical capability progresses through four levels, and each imposes a sharper
   \node[anchor=north, font=\footnotesize, text=black!70] at (3.2,-1.45) {where most organizations stall};
   \node[font=\footnotesize, text=black!55] at (11.7,-1.95) {analytical maturity $\longrightarrow$};
 \end{tikzpicture}}
-\caption{Analytical maturity as rising architectural demand. The first two levels (grey) are served by the classical warehouse; the predictive and prescriptive levels (blue) require a different pipeline shape. The dashed line marks where the architecture, not just the query, must change. \textit{Author-generated, after \parencite{gartner2012ascendancy}.}}
+\caption{Analytical maturity as rising architectural demand. \textit{Author-generated, after \parencite{gartner2012ascendancy}.}}
 \label{fig:ch2-maturity-staircase}
 \end{figure}
 
@@ -81,7 +81,7 @@ Workload plurality & The capacity to serve business-intelligence and machine-lea
 Lifecycle support & The support for model retraining, feedback loops, and model governance inside the pipeline \parencite{kreuzberger2023, feedback2025}. \\
 \hline
 \end{tabularx}
-\caption{Five criteria for comparing analytical scalability, drawn from the literature on modern analytical architectures. \textit{Author-generated.}}
+\caption{Five criteria for comparing analytical scalability. \textit{Author-generated.}}
 \label{tab:ch2-criteria}
 \end{table}
 
@@ -107,7 +107,7 @@ The five architectures surveyed below are assessed against these criteria at the
   \draw[->, thick] (b) -- (c);
   \draw[->, thick] (c) -- (d);
 \end{tikzpicture}}
-\caption{Evolution of data architectures, 1990s--2020s: from the traditional warehouse through the data lake and the streaming designs to the Lakehouse. Each stage relaxes a limit of its predecessor; the medallion pattern is an implementation discipline within the Lakehouse, not a separate peer architecture. \textit{Author-generated.}}
+\caption{Evolution of data architectures, 1990s--2020s: from the traditional warehouse through the data lake and streaming designs to the Lakehouse. \textit{Author-generated.}}
 \label{fig:ch2-arch-evolution}
 \end{figure}
 
@@ -234,7 +234,7 @@ The Lakehouse was designed to keep the lake's openness while restoring the wareh
   \draw[->, thick] (st.south) -- (st.south |- tbl.north);
   \draw[<->, thick] (tbl.south) -- (sto.north);
 \end{tikzpicture}}
-\caption{Lakehouse architecture: one open store serves BI, machine learning, and streaming from the same data. An open table format adds ACID transactions, schema enforcement, and time travel over columnar files on low-cost object storage, all under a unified governance layer. \textit{Author-generated, after} \parencite{armbrust2021}.}
+\caption{Lakehouse architecture: one open store serves BI, machine learning, and streaming from the same data. \textit{Author-generated, after} \parencite{armbrust2021}.}
 \label{fig:ch2-lakehouse}
 \end{figure}
 
@@ -268,7 +268,7 @@ Schema evolution & Yes & Yes (hidden partitioning) & Yes \\
 Design emphasis & Tight engine integration & Open multi-engine interoperability & Streaming upserts and incremental pulls \\
 \hline
 \end{tabularx}
-\caption{The three leading open table formats share ACID semantics, time travel, and schema evolution, differing mainly in emphasis. \textit{Author-generated, after \parencite{deltalake2020, armbrust2021}.}}
+\caption{The three leading open table formats compared. \textit{Author-generated, after \parencite{deltalake2020, armbrust2021}.}}
 \label{tab:otf}
 \end{table}
 
@@ -385,7 +385,7 @@ The decisive question for analytical scalability is whether models are first-cla
   \draw[loop] (serve.north) to[out=90, in=90]
         node[above, font=\footnotesize] {outcomes + feedback} (store.north);
 \end{tikzpicture}
-\caption{Native predictive pipeline on the Lakehouse: training, serving, and monitoring on one governed store, closing the loop required for prescriptive analytics. \textit{Author-generated, after \parencite{kreuzberger2023}.}}
+\caption{Native predictive pipeline on the Lakehouse: training, serving, and monitoring on one governed store. \textit{Author-generated, after \parencite{kreuzberger2023}.}}
 \label{fig:ch2-native-ml-loop}
 \end{figure}
 
@@ -399,7 +399,7 @@ The third pattern keeps the pipeline fresh enough for prescriptive decisions. \t
 \section{Comparative Analysis}
 \label{sec:ch2-comparison}
 
-Setting the five architectures against the five criteria makes the pattern explicit. Table~\ref{tab:ch2-comparison} records the comparison; scores are author assessments grounded in the cited sources, on the same three-level scale used in Chapter~1, where Strong denotes the favourable end.
+Setting the five architectures against the five criteria makes the pattern explicit. Table~\ref{tab:ch2-comparison} records the comparison; scores are author assessments grounded in \parencite{marz2015, kreps2014, nambiar2022, armbrust2021, databricks2022}, on the same three-level scale used in Chapter~1, where Strong denotes the favourable end, and are ordinal rather than measured.
 
 \begin{table}[H]
 \centering
@@ -422,7 +422,7 @@ Workload plurality & Partial & Partial & \textbf{Strong} & \textbf{Strong} & \te
 Lifecycle support & Weak & Partial & Weak & \textbf{Strong} & \textbf{Strong} \\
 \hline
 \end{tabularx}
-\caption{The five modern architectures assessed against the analytical-scalability criteria. Scores are author assessments grounded in \parencite{marz2015, kreps2014, nambiar2022, armbrust2021, databricks2022}; they are ordinal, not measured. \textit{Author-generated.}}
+\caption{The five modern architectures assessed against the analytical-scalability criteria. \textit{Author-generated.}}
 \label{tab:ch2-comparison}
 \end{table}
 
@@ -431,7 +431,7 @@ Three readings stand out. First, the streaming architectures --- Lambda and Kapp
 \subsection{Tracing an Analytical Demand}
 \label{subsec:ch2-tracing}
 
-As in Chapter~1, a single demand traced through each architecture makes the criteria concrete. Consider a representative one: the business asks for a churn-prediction model that scores customers daily and is retrained as behaviour drifts. Table~\ref{tab:ch2-tracing} follows it.
+As in Chapter~1, a single demand traced through each architecture makes the criteria concrete. Consider a representative one: the business asks for a churn-prediction model that scores customers daily and is retrained as behaviour drifts. Table~\ref{tab:ch2-tracing} follows it, grounded in \parencite{marz2015, kreps2014, nambiar2022, armbrust2021, databricks2022}.
 
 \begin{table}[H]
 \centering
@@ -450,7 +450,7 @@ Lakehouse & Features, training, serving, and monitoring run on the governed stor
 Delta & As Lakehouse, with Gold-layer features and an auditable refinement path feeding training. & Native \\
 \hline
 \end{tabularx}
-\caption{Tracing one analytical demand --- a retrained daily churn model --- through each architecture. \textit{Author-generated, grounded in \parencite{marz2015, kreps2014, nambiar2022, armbrust2021, databricks2022}.}}
+\caption{Tracing one analytical demand --- a retrained daily churn model --- through each architecture. \textit{Author-generated.}}
 \label{tab:ch2-tracing}
 \end{table}
 
